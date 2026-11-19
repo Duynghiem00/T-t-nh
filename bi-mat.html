@@ -113,7 +113,6 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
     <div id="secret" class="hidden">
       <p class="letter" id="letter"></p>
       <div class="place">
-        <b id="placeName"></b>
         <div id="placeAddr"></div>
         <div id="placeTime" style="font-weight:800;margin-top:4px"></div>
         <a class="go hidden" id="mapBtn" style="margin-top:12px;font-size:16px;padding:10px 22px" target="_blank" rel="noopener">Xem bản đồ 📍</a>
@@ -132,7 +131,7 @@ var BG_OPACITY = 0.6;
 var BG_BLUR    = 3;     // đơn vị px, thử 0 đến 8
 
 // Ngày bắt đầu yêu, dạng năm-tháng-ngày. Để "" nếu không muốn hiện bộ đếm.
-var START_DATE = "2026-02-14";
+var START_DATE = "2025-11-11";
 
 // Album: [tên file ảnh, chú thích]. Thêm hoặc bớt tùy ý.
 var PHOTOS = [
@@ -147,13 +146,6 @@ var PHOTOS = [
 // Lá thư (xuống dòng thoải mái)
 var LETTER = "Cảm ơn em đã đồng ý.\nAnh không giỏi nói lời hoa mỹ, nhưng anh muốn mỗi ngày của mình đều có em trong đó.\nTuần này gặp nhau nhé, anh sẽ đợi em 💕";
 
-// Địa điểm hẹn
-var PLACE = {
-  name: "Tên quán / địa điểm",
-  addr: "Địa chỉ cụ thể ở đây",
-  time: "19:00, Thứ 7",
-  map:  ""     // dán link Google Maps vào đây, để "" thì ẩn nút bản đồ
-};
 
 /* ---- Phần dưới bạn không cần sửa ---- */
 var $ = function(id){return document.getElementById(id)};
@@ -205,7 +197,6 @@ function openBox(src, text){
 
 // Phong bì
 $("letter").textContent = LETTER;
-$("placeName").textContent = PLACE.name;
 $("placeAddr").textContent = PLACE.addr;
 $("placeTime").textContent = "🕒 " + PLACE.time;
 if (PLACE.map){
