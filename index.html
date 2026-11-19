@@ -140,7 +140,11 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
         <div class="cal-grid" id="calDays"></div>
       </div>
       <h2>Mấy giờ thì tiện?</h2>
-      <input type="time" id="timeInput" class="other" style="margin-top:0">
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="hourSel" class="other" style="margin-top:0"></select>
+        <strong>:</strong>
+        <select id="minSel" class="other" style="margin-top:0"></select>
+      </div>
       <h2>Mình đi đâu nè?</h2>
       <div class="chips" id="places"></div>
       <input type="text" id="placeOther" class="other hidden" maxlength="100" placeholder="Em muốn đi đâu? Ghi vào đây nhé 💕">
@@ -326,10 +330,20 @@ $("calPrev").addEventListener("click", function(){ viewM--; if (viewM<0){viewM=1
 $("calNext").addEventListener("click", function(){ viewM++; if (viewM>11){viewM=0;viewY++;} renderCal(); });
 renderCal();
 
-$("timeInput").addEventListener("input", function(){
-  pick.time = this.value;   // dạng "19:30"
+var hourSel = $("hourSel"), minSel = $("minSel");
+hourSel.innerHTML = '<option value="">Chọn giờ</option>';
+for (var h = 0; h < 24; h++){
+  hourSel.innerHTML += '<option value="' + pad(h) + '">' + pad(h) + ' giờ</option>';
+}
+for (var m = 0; m < 60; m += 5){
+  minSel.innerHTML += '<option value="' + pad(m) + '">' + pad(m) + ' phút</option>';
+}
+function updateTime(){
+  pick.time = hourSel.value ? hourSel.value + ":" + minSel.value : "";
   refresh();
-});
+}
+hourSel.addEventListener("change", updateTime);
+minSel.addEventListener("change", updateTime);
 single("places", PLACES.concat([OTHER_PLACE]), "place");
 
 $("places").addEventListener("click", function(){
