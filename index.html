@@ -109,7 +109,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .login-input{width:100%;font-family:inherit;font-size:17px;padding:12px 16px;border-radius:18px;border:2px solid var(--no);background:var(--card);color:var(--ink)}
 .login-input::placeholder{color:var(--muted);opacity:.6}
 .login-input:focus{outline:3px solid var(--yes)}
-.login-field small{display:block;margin:5px 0 0 8px;font-size:13px;color:var(--muted);opacity:.6}
+.login-label{display:block;font-weight:800;font-size:16px;margin:0 0 6px 6px}
 .shake{animation:shake .4s}
 @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 @media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}.disc{animation:none}
@@ -124,12 +124,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
       <h1>Mở khóa món quà nhỏ 🎁</h1>
       <p class="sub">Nhập đúng tên đăng nhập và mật khẩu nhé</p>
       <div class="login-field">
-        <input type="text" id="loginUser" class="login-input" placeholder="Tên đăng nhập" autocomplete="off">
-        <small id="hintUser"></small>
+        <label for="loginUser" class="login-label">Tên đăng nhập</label>
+        <input type="text" id="loginUser" class="login-input" autocomplete="off">
       </div>
       <div class="login-field">
-        <input type="password" id="loginPass" class="login-input" placeholder="Mật khẩu" autocomplete="off">
-        <small id="hintPass"></small>
+        <label for="loginPass" class="login-label">Mật khẩu</label>
+        <input type="password" id="loginPass" class="login-input" autocomplete="off">
       </div>
       <button id="loginBtn" class="go" style="margin-top:6px">Mở khóa 💖</button>
       <p id="loginMsg" class="sub" style="margin:10px 0 0"></p>
@@ -450,8 +450,8 @@ var HINT_USER  = "NhismyeuGiang";   // gợi ý mờ dưới ô tên, ví dụ "
 var HINT_PASS  = "Sinh nhật anh";   // gợi ý mờ dưới ô mật khẩu, ví dụ "Ngày mình quen nhau (ngày tháng năm)"
 
 var loginBox = $("login"), uIn = $("loginUser"), pIn = $("loginPass");
-$("hintUser").textContent = HINT_USER;
-$("hintPass").textContent = HINT_PASS;
+uIn.placeholder = HINT_USER ? "“" + HINT_USER + "”" : "";
+pIn.placeholder = HINT_PASS ? "“" + HINT_PASS + "”" : "";
 
 function unlock(){
   loginBox.classList.add("hidden");
