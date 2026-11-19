@@ -92,6 +92,19 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .song-name{font-size:22px;font-weight:800}
 .play{width:64px;height:64px;font-size:26px;background:var(--yes);color:var(--yes-ink);box-shadow:0 6px 16px rgba(255,92,138,.4)}
 .play:hover{transform:scale(1.08)}
+.cal{background:var(--bg2);border-radius:22px;padding:10px 10px 12px;box-shadow:inset 0 0 0 2px var(--no)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;background:var(--yes);color:var(--yes-ink);border-radius:16px;padding:6px 8px;margin-bottom:8px;font-size:17px}
+.cal-head button{width:34px;height:34px;font-size:20px;padding:0;background:rgba(255,255,255,.35);color:var(--yes-ink)}
+.cal-head button:disabled{opacity:.35;cursor:not-allowed}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dow{font-size:13px;font-weight:700;color:var(--muted);padding:4px 0}
+.day{aspect-ratio:1;font-size:15px;padding:0;background:transparent;color:var(--ink);border-radius:50%}
+.day:hover:not(:disabled){background:var(--no)}
+.day:disabled{opacity:.3;cursor:not-allowed}
+.day.today{box-shadow:inset 0 0 0 2px var(--yes)}
+.day[aria-pressed="true"]{background:var(--yes);color:var(--yes-ink)}
+.other{width:100%;margin-top:10px;font-family:inherit;font-size:16px;padding:10px 14px;border-radius:16px;border:2px solid var(--no);background:var(--card);color:var(--ink)}
+.other:focus{outline:3px solid var(--yes)}
 @media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}.disc{animation:none}
 </style>
 </head>
@@ -237,8 +250,19 @@ function notifyMe(text){
 // ✏️ Sửa lịch hẹn ở đây
 var PHONE = "";   // số điện thoại của bạn, ví dụ "0912345678" (để có nút gửi tin nhắn)
 var TIMES = ["10:00","14:00","17:30","19:00"];
-var PLACES = ["Quán cà phê nhỏ xinh ☕","Dạo hồ ngắm hoàng hôn 🌇","Xem phim rạp 🎬","Chợ đêm đi ăn vặt 🏮"];
-var MAX_FOOD = 3;
+var OTHER_PLACE = "Chỗ khác ✏️";
+var PLACES = [
+  "Quán cà phê nhỏ xinh ☕",
+  "Dạo hồ ngắm hoàng hôn 🌇",
+  "Xem phim rạp 🎬",
+  "Chợ đêm ăn vặt 🏮",
+  "Nhà hàng lẩu nướng 🍲",
+  "Quán trà sữa và bánh ngọt 🧋",
+  "Công viên đi dạo 🌳",
+  "Khu trò chơi điện tử 🎮",
+  "Quán ăn vỉa hè 🍢",
+  "Dạo phố chụp ảnh 📸"
+];
 var FOODS = [
   ["🍜","Phở bò"],["🍢","Bún chả"],["🥖","Bánh mì"],["🌶️","Bún bò Huế"],["🍚","Cơm tấm"],
   ["🥞","Bánh xèo"],["🌯","Gỏi cuốn"],["🥟","Chả giò"],["🦀","Bún riêu"],["🍲","Hủ tiếu"],
@@ -269,16 +293,61 @@ function single(id, items, key){
     });
   });
 }
-var names = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
-var days = [];
-for (var i=1;i<=7;i++){
-  var d = new Date(); d.setDate(d.getDate()+i);
-  var dd = ("0"+d.getDate()).slice(-2), mm = ("0"+(d.getMonth()+1)).slice(-2);
-  days.push(names[d.getDay()] + ", " + dd + "/" + mm);
+var DOW = ["T2","T3","T4","T5","T6","T7","CN"];
+var DAYNAME = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+var today = new Date(); today.setHours(0,0,0,0);
+var viewY = today.getFullYear(), viewM = today.getMonth();
+var calDays = $("calDays");
+function pad(n){ return ("0"+n).slice(-2); }
+
+$("calDow").innerHTML = DOW.map(function(d){ return '<div class="dow">'+d+'</div>'; }).join("");
+
+function renderCal(){
+  $("calTitle").textContent = "Tháng " + (viewM+1) + " / " + viewY;
+  calDays.innerHTML = "";
+  var offset = (new Date(viewY, viewM, 1).getDay() + 6) % 7;
+  var total = new Date(viewY, viewM+1, 0).getDate();
+  for (var i=0;i<offset;i++){ calDays.appendChild(document.createElement("div")); }
+  for (var d=1; d<=total; d++){
+    (function(d){
+      var date = new Date(viewY, viewM, d);
+      var label = DAYNAME[date.getDay()] + ", " + pad(d) + "/" + pad(viewM+1) + "/" + viewY;
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "day"; b.textContent = d;
+      b.setAttribute("aria-pressed", pick.day === label ? "true" : "false");
+      if (date < today) b.disabled = true;
+      if (date.getTime() === today.getTime()) b.classList.add("today");
+      b.addEventListener("click", function(){ pick.day = label; renderCal(); refresh(); });
+      calDays.appendChild(b);
+    })(d);
+  }
+  $("calPrev").disabled = (viewY === today.getFullYear() && viewM === today.getMonth());
 }
-single("days", days, "day");
+$("calPrev").addEventListener("click", function(){ viewM--; if (viewM<0){viewM=11;viewY--;} renderCal(); });
+$("calNext").addEventListener("click", function(){ viewM++; if (viewM>11){viewM=0;viewY++;} renderCal(); });
+renderCal();
+
 single("times", TIMES, "time");
-single("places", PLACES, "place");
+single("places", PLACES.concat([OTHER_PLACE]), "place");
+
+$("places").addEventListener("click", function(){
+  var other = (pick.place === OTHER_PLACE);
+  $("placeOther").classList.toggle("hidden", !other);
+  if (other) $("placeOther").focus();
+  refresh();
+});
+$("placeOther").addEventListener("input", refresh);
+$("foodOther").addEventListener("input", refresh);
+
+function placeValue(){
+  return pick.place === OTHER_PLACE ? $("placeOther").value.trim() : pick.place;
+}
+function foodList(){
+  var list = pick.foods.slice();
+  var o = $("foodOther").value.trim();
+  if (o) list.push(o);
+  return list;
+}
 
 var foodChips = [];
 FOODS.forEach(function(f){
@@ -286,25 +355,22 @@ FOODS.forEach(function(f){
   var chip = mkChip($("foods"), label, function(b){
     var i = pick.foods.indexOf(label);
     if (i >= 0){ pick.foods.splice(i,1); b.setAttribute("aria-pressed","false"); }
-    else if (pick.foods.length < MAX_FOOD){ pick.foods.push(label); b.setAttribute("aria-pressed","true"); }
+    else { pick.foods.push(label); b.setAttribute("aria-pressed","true"); }
     refresh();
   });
   foodChips.push(chip);
 });
 
 function refresh(){
-  var full = pick.foods.length >= MAX_FOOD;
-  foodChips.forEach(function(c){
-    c.disabled = full && c.getAttribute("aria-pressed") !== "true";
-  });
-  $("foodHint").textContent = "Đã chọn " + pick.foods.length + "/" + MAX_FOOD + " món";
-  goBtn.disabled = !(pick.day && pick.time && pick.place && pick.foods.length);
+  var n = pick.foods.length;
+  $("foodHint").textContent = n ? "Đã chọn " + n + " món 😋" : "Chọn bao nhiêu món cũng được 😋";
+  goBtn.disabled = !(pick.day && pick.time && placeValue() && foodList().length);
 }
 
 var msg = "";
 goBtn.addEventListener("click", function(){
   msg = "Em đồng ý hẹn hò với anh nha! 💕 " + pick.day + ", lúc " + pick.time +
-        ", mình đi: " + pick.place + ". Em muốn ăn: " + pick.foods.join(", ") + " 😋";
+      ", mình đi: " + placeValue() + ". Em muốn ăn: " + foodList().join(", ") + " 😋";
   $("resultText").textContent = "Cảm ơn em đã đồng ý 💖";
   $("result").classList.remove("hidden");
   goBtn.disabled = true;
