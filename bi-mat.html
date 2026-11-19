@@ -112,11 +112,6 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
     <button class="go" id="openBtn">Mở phong bì 💖</button>
     <div id="secret" class="hidden">
       <p class="letter" id="letter"></p>
-      <div class="place">
-        <div id="placeAddr"></div>
-        <div id="placeTime" style="font-weight:800;margin-top:4px"></div>
-        <a class="go hidden" id="mapBtn" style="margin-top:12px;font-size:16px;padding:10px 22px" target="_blank" rel="noopener">Xem bản đồ 📍</a>
-      </div>
     </div>
   </section>
 
@@ -146,12 +141,6 @@ var PHOTOS = [
 // Lá thư (xuống dòng thoải mái)
 var LETTER = "Cảm ơn em đã đồng ý.\nAnh không giỏi nói lời hoa mỹ, nhưng anh muốn mỗi ngày của mình đều có em trong đó.\nTuần này gặp nhau nhé, anh sẽ đợi em 💕";
 
-// Địa điểm hẹn
-var PLACE = {
-  addr: "Địa chỉ cụ thể ở đây",
-  time: "19:00, Thứ 7",
-  map:  ""     // dán link Google Maps vào đây, để "" thì ẩn nút bản đồ
-};
 /* ---- Phần dưới bạn không cần sửa ---- */
 var $ = function(id){return document.getElementById(id)};
 
@@ -202,12 +191,6 @@ function openBox(src, text){
 
 // Phong bì
 $("letter").textContent = LETTER;
-$("placeAddr").textContent = PLACE.addr;
-$("placeTime").textContent = "🕒 " + PLACE.time;
-if (PLACE.map){
-  $("mapBtn").href = PLACE.map;
-  $("mapBtn").classList.remove("hidden");
-}
 $("openBtn").addEventListener("click", function(){
   this.classList.add("hidden");
   $("secret").classList.remove("hidden");
