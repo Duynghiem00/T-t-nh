@@ -76,12 +76,19 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 .place{margin-top:16px;background:var(--no);border-radius:20px;padding:16px}
 .place b{font-size:20px;display:block;margin-bottom:4px}
 .hidden{display:none!important}
+.music-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:10;
+  width:52px;height:52px;border-radius:50%;border:0;font-size:24px;cursor:pointer;
+  background:var(--yes);color:var(--yes-ink);box-shadow:0 6px 16px rgba(255,92,138,.45)}
+.music-fab.playing{animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.env{animation:none}.heart{animation-duration:.01s!important}}
 </style>
 </head>
 <body>
 <div class="bg" id="bg" aria-hidden="true"></div>
 <div class="hearts" id="hearts" aria-hidden="true"></div>
+<audio id="bgm" src="nhac.mp3" loop preload="auto"></audio>
+<button id="musicBtn" class="music-fab" aria-label="Bật hoặc tắt nhạc">🎵</button>
 
 <main class="wrap">
 
@@ -212,6 +219,37 @@ $("openBtn").addEventListener("click", function(){
   $("secret").scrollIntoView({behavior:"smooth", block:"center"});
 });
 
+var MUSIC_VOLUME = 0.6;   // âm lượng từ 0 đến 1
+var bgm = $("bgm"), musicBtn = $("musicBtn");
+var userPaused = false;
+bgm.volume = MUSIC_VOLUME;
+
+function setIcon(){
+  musicBtn.textContent = bgm.paused ? "🔇" : "🎵";
+  musicBtn.classList.toggle("playing", !bgm.paused);
+}
+bgm.addEventListener("play", setIcon);
+bgm.addEventListener("pause", setIcon);
+setIcon();
+
+function tryPlay(){
+  var p = bgm.play();
+  if (p && p.catch) p.catch(function(){});
+}
+tryPlay();   // thử tự phát khi mở trang
+
+// Nếu trình duyệt chặn, nhạc sẽ phát ở lần chạm đầu tiên vào trang
+["click","touchstart","keydown"].forEach(function(ev){
+  document.addEventListener(ev, function(){
+    if (bgm.paused && !userPaused) tryPlay();
+  });
+});
+
+musicBtn.addEventListener("click", function(e){
+  e.stopPropagation();
+  if (bgm.paused){ userPaused = false; tryPlay(); }
+  else { userPaused = true; bgm.pause(); }
+});
 var icons = ["💖","💗","💕","💘","🌸","✨","💞"];
 function rain(n){
   var box = $("hearts");
