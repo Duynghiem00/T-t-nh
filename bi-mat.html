@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nơi bí mật của mình 💌</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg1:#ffe3ec; --bg2:#fff0f5; --ink:#7a2347; --muted:#b0577d;
+  --card:#ffffff; --yes:#ff5c8a; --yes-ink:#ffffff; --no:#ffd3e1;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg1:#2b1020; --bg2:#1d0b16; --ink:#ffd9e6; --muted:#e79ab9;
+    --card:#3a1729; --yes:#ff6b97; --yes-ink:#2b0f1c; --no:#54263d;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg1:#2b1020; --bg2:#1d0b16; --ink:#ffd9e6; --muted:#e79ab9;
+  --card:#3a1729; --yes:#ff6b97; --yes-ink:#2b0f1c; --no:#54263d;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;min-height:100vh;
+  font-family:'Baloo 2','Segoe UI',system-ui,sans-serif;
+  background:radial-gradient(circle at 50% 0%,var(--bg1),var(--bg2) 70%);
+  color:var(--ink);
+}
+/* Ảnh nền mờ */
+.bg{position:fixed;inset:-24px;z-index:0;background-position:center;background-size:cover;background-repeat:no-repeat}
+.hearts{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.heart{position:absolute;top:-40px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(112vh) rotate(40deg);opacity:.85}}
+
+.wrap{position:relative;z-index:2;width:min(94vw,520px);margin:0 auto;padding:22px 0 40px}
+.card{background:var(--card);border-radius:30px;padding:24px 20px;margin-bottom:18px;
+  box-shadow:0 14px 40px rgba(255,92,138,.25);text-align:center}
+h1{font-size:clamp(26px,7vw,34px);font-weight:800;margin:0 0 6px;line-height:1.25}
+h2{font-size:21px;font-weight:800;margin:0 0 14px}
+.sub{margin:0;color:var(--muted);font-weight:500}
+.big{font-size:44px;font-weight:800;color:var(--yes);line-height:1.1}
+
+/* Album */
+.album{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 12px}
+.polaroid{background:#fff;padding:8px 8px 10px;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.18);
+  cursor:pointer;border:0;font-family:inherit;color:#7a2347;transition:transform .2s}
+.polaroid:nth-child(odd){transform:rotate(-2.5deg)}
+.polaroid:nth-child(even){transform:rotate(2.5deg)}
+.polaroid:hover{transform:rotate(0) scale(1.04)}
+.polaroid img,.polaroid .ph{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;background:#ffe3ec}
+.polaroid .ph{display:flex;align-items:center;justify-content:center;font-size:40px}
+.polaroid span{display:block;margin-top:7px;font-size:14px;font-weight:700;line-height:1.25}
+.lightbox{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.82);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;gap:12px;cursor:pointer}
+.lightbox img{max-width:100%;max-height:78vh;border-radius:12px}
+.lightbox p{color:#fff;font-weight:700;font-size:18px;margin:0;text-align:center}
+
+/* Phong bì */
+button.go,a.go{display:inline-block;font-family:inherit;font-weight:800;font-size:19px;border:0;cursor:pointer;
+  background:var(--yes);color:var(--yes-ink);padding:13px 28px;border-radius:999px;text-decoration:none;
+  box-shadow:0 6px 16px rgba(255,92,138,.4)}
+button.go:hover,a.go:hover{transform:scale(1.05)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.env{font-size:80px;line-height:1;display:inline-block;animation:bounce 1.2s ease-in-out infinite;margin-bottom:10px}
+@keyframes bounce{50%{transform:translateY(-10px)}}
+.letter{white-space:pre-line;text-align:left;line-height:1.6;font-weight:500;background:var(--bg2);
+  border-radius:20px;padding:16px;margin:14px 0 0}
+.place{margin-top:16px;background:var(--no);border-radius:20px;padding:16px}
+.place b{font-size:20px;display:block;margin-bottom:4px}
+.hidden{display:none!important}
+@media (prefers-reduced-motion:reduce){.env{animation:none}.heart{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="bg" id="bg" aria-hidden="true"></div>
+<div class="hearts" id="hearts" aria-hidden="true"></div>
+
+<main class="wrap">
+
+  <section class="card">
+    <h1>Hành trình của mình 💕</h1>
+    <p class="sub" id="subtitle">Những khoảnh khắc anh muốn giữ mãi</p>
+    <div id="counter" class="hidden" style="margin-top:16px">
+      <div class="big" id="days">0</div>
+      <p class="sub">ngày mình bên nhau 🥰</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Album kỷ niệm 📸</h2>
+    <div class="album" id="album"></div>
+  </section>
+
+  <section class="card" id="envCard">
+    <div class="env" aria-hidden="true">💌</div>
+    <h2>Anh có một điều bí mật</h2>
+    <button class="go" id="openBtn">Mở phong bì 💖</button>
+    <div id="secret" class="hidden">
+      <p class="letter" id="letter"></p>
+      <div class="place">
+        <b id="placeName"></b>
+        <div id="placeAddr"></div>
+        <div id="placeTime" style="font-weight:800;margin-top:4px"></div>
+        <a class="go hidden" id="mapBtn" style="margin-top:12px;font-size:16px;padding:10px 22px" target="_blank" rel="noopener">Xem bản đồ 📍</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ✏️ BẠN SỬA PHẦN NÀY */
+
+// Ảnh nền (upload cùng thư mục). BG_OPACITY = 0.6 là mờ 60%. BG_BLUR là độ nhòe (0 = không nhòe).
+var BG_IMAGE   = "anh-nen.jpg";
+var BG_OPACITY = 0.6;
+var BG_BLUR    = 3;     // đơn vị px, thử 0 đến 8
+
+// Ngày bắt đầu yêu, dạng năm-tháng-ngày. Để "" nếu không muốn hiện bộ đếm.
+var START_DATE = "2026-02-14";
+
+// Album: [tên file ảnh, chú thích]. Thêm hoặc bớt tùy ý.
+var PHOTOS = [
+  ["anh1.jpg", "Lần đầu mình gặp nhau"],
+  ["anh2.jpg", "Buổi hẹn đầu tiên"],
+  ["anh3.jpg", "Ngày em cười đẹp nhất"],
+  ["anh4.jpg", "Chuyến đi vui nhất"],
+  ["anh5.jpg", "Bữa ăn mình nhớ mãi"],
+  ["anh6.jpg", "Một ngày bình thường mà hạnh phúc"]
+];
+
+// Lá thư (xuống dòng thoải mái)
+var LETTER = "Cảm ơn em đã đồng ý.\nAnh không giỏi nói lời hoa mỹ, nhưng anh muốn mỗi ngày của mình đều có em trong đó.\nTuần này gặp nhau nhé, anh sẽ đợi em 💕";
+
+// Địa điểm hẹn
+var PLACE = {
+  name: "Tên quán / địa điểm",
+  addr: "Địa chỉ cụ thể ở đây",
+  time: "19:00, Thứ 7",
+  map:  ""     // dán link Google Maps vào đây, để "" thì ẩn nút bản đồ
+};
+
+/* ---- Phần dưới bạn không cần sửa ---- */
+var $ = function(id){return document.getElementById(id)};
+
+// Ảnh nền mờ 60%
+var bg = $("bg");
+bg.style.backgroundImage = 'url("' + BG_IMAGE + '")';
+bg.style.opacity = BG_OPACITY;
+bg.style.filter = "blur(" + BG_BLUR + "px)";
+
+// Bộ đếm ngày
+if (START_DATE){
+  var start = new Date(START_DATE + "T00:00:00");
+  var n = Math.floor((Date.now() - start.getTime()) / 86400000);
+  if (n >= 0){
+    $("days").textContent = n + 1;
+    $("counter").classList.remove("hidden");
+  }
+}
+
+// Album
+var album = $("album");
+PHOTOS.forEach(function(p){
+  var b = document.createElement("button");
+  b.type = "button"; b.className = "polaroid";
+  var img = document.createElement("img");
+  img.src = p[0]; img.alt = p[1]; img.loading = "lazy";
+  img.onerror = function(){
+    var ph = document.createElement("div");
+    ph.className = "ph"; ph.textContent = "📷";
+    img.replaceWith(ph);
+  };
+  var cap = document.createElement("span");
+  cap.textContent = p[1];
+  b.appendChild(img); b.appendChild(cap);
+  b.addEventListener("click", function(){ openBox(p[0], p[1]); });
+  album.appendChild(b);
+});
+
+function openBox(src, text){
+  var box = document.createElement("div");
+  box.className = "lightbox";
+  box.innerHTML = '<img alt=""><p></p>';
+  box.querySelector("img").src = src;
+  box.querySelector("p").textContent = text;
+  box.addEventListener("click", function(){ box.remove(); });
+  document.body.appendChild(box);
+}
+
+// Phong bì
+$("letter").textContent = LETTER;
+$("placeName").textContent = PLACE.name;
+$("placeAddr").textContent = PLACE.addr;
+$("placeTime").textContent = "🕒 " + PLACE.time;
+if (PLACE.map){
+  $("mapBtn").href = PLACE.map;
+  $("mapBtn").classList.remove("hidden");
+}
+$("openBtn").addEventListener("click", function(){
+  this.classList.add("hidden");
+  $("secret").classList.remove("hidden");
+  rain(45);
+  $("secret").scrollIntoView({behavior:"smooth", block:"center"});
+});
+
+var icons = ["💖","💗","💕","💘","🌸","✨","💞"];
+function rain(n){
+  var box = $("hearts");
+  for (var i=0;i<n;i++){
+    var h = document.createElement("span");
+    h.className = "heart";
+    h.textContent = icons[Math.floor(Math.random()*icons.length)];
+    h.style.left = Math.random()*100 + "vw";
+    h.style.fontSize = (16 + Math.random()*26) + "px";
+    h.style.animationDuration = (3 + Math.random()*3.5) + "s";
+    h.style.animationDelay = (Math.random()*0.8) + "s";
+    box.appendChild(h);
+    (function(el){setTimeout(function(){el.remove()}, 8000)})(h);
+  }
+}
+</script>
+</body>
+</html>
