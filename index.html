@@ -117,13 +117,9 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
       <div class="result hidden" id="result" role="status">
         <div id="resultText"></div>
         <div id="sendStatus" style="margin-top:8px;font-size:14px;color:var(--muted)"></div>
-        <div class="row">
-          <button id="copy">Sao chép tin nhắn</button>
-          <a id="sms" class="hidden" href="#">Gửi cho anh 💬</a>
-        </div>
       </div>
     </div>
-  </section>
+  </section>        
 </main>
 
 <script>
@@ -278,13 +274,8 @@ var msg = "";
 goBtn.addEventListener("click", function(){
   msg = "Em đồng ý hẹn hò với anh nha! 💕 " + pick.day + ", lúc " + pick.time +
         ", mình đi: " + pick.place + ". Em muốn ăn: " + pick.foods.join(", ") + " 😋";
-  $("resultText").textContent = msg;
+  $("resultText").textContent = "Cảm ơn em đã đồng ý 💖";
   $("result").classList.remove("hidden");
-  if (PHONE){
-    var a = $("sms");
-    a.href = "sms:" + PHONE + "?body=" + encodeURIComponent(msg);
-    a.classList.remove("hidden");
-  }
   goBtn.disabled = true;
   var st = $("sendStatus");
   if (hasNotify()){
@@ -295,13 +286,6 @@ goBtn.addEventListener("click", function(){
   }
   rain(30);
   $("result").scrollIntoView({behavior:"smooth", block:"center"});
-});
-$("copy").addEventListener("click", function(){
-  var btn = $("copy");
-  function ok(){ btn.textContent = "Đã sao chép ✓"; }
-  try {
-    navigator.clipboard.writeText(msg).then(ok, function(){ btn.textContent = "Hãy chụp màn hình gửi anh nhé 📸"; });
-  } catch(e){ btn.textContent = "Hãy chụp màn hình gửi anh nhé 📸"; }
 });
 
 var icons = ["💖","💗","💕","💘","🌸","✨","💞"];
