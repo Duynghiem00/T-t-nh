@@ -420,7 +420,7 @@ function refresh(){
 var msg = "";
 goBtn.addEventListener("click", function(){
   msg = "Em cũng muốn hẹn hò với anh nha! 💕 " + pick.day + ", lúc " + pick.time +
-      ", mình đi: " + placeList().join(", + ". Em muốn ăn: " + foodList().join(", ") + " 😋";
+      ", mình đi: " + placeList().join(", ") + ". Em muốn ăn: " + foodList().join(", ") + " 😋";
   $("resultText").textContent = "Cảm ơn em đã đồng ý 💖";
   $("result").classList.remove("hidden");
   goBtn.disabled = true;
