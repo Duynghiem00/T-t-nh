@@ -80,7 +80,19 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .result{text-align:center;margin-top:18px;background:var(--bg2);border-radius:22px;padding:16px;font-weight:500;line-height:1.5}
 .result .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .result a,.result button{font-family:inherit;font-weight:700;font-size:15px;text-decoration:none;background:var(--yes);color:var(--yes-ink);padding:9px 16px;border-radius:999px;border:0;cursor:pointer}
-@media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}
+.disc{position:relative;width:170px;height:170px;margin:6px auto 14px;border-radius:50%;
+  background:conic-gradient(#ff9fbd,#ffd6e4,#ff7aa5,#ffd6e4,#ff9fbd);
+  display:flex;align-items:center;justify-content:center;font-size:44px;
+  box-shadow:0 10px 28px rgba(255,92,138,.4);
+  animation:spin 6s linear infinite;animation-play-state:paused}
+.disc::after{content:"";position:absolute;width:76px;height:76px;border-radius:50%;background:var(--card)}
+.disc span{position:relative;z-index:1}
+.disc.playing{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+.song-name{font-size:22px;font-weight:800}
+.play{width:64px;height:64px;font-size:26px;background:var(--yes);color:var(--yes-ink);box-shadow:0 6px 16px rgba(255,92,138,.4)}
+.play:hover{transform:scale(1.08)}
+@media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}.disc{animation:none}
 </style>
 </head>
 <body>
@@ -119,7 +131,16 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
         <div id="sendStatus" style="margin-top:8px;font-size:14px;color:var(--muted)"></div>
       </div>
     </div>
-  </section>        
+  </section>    
+  <section id="music" class="hidden">
+    <h1 style="font-size:24px;margin-top:0">Bài hát dành riêng cho em 🎶</h1>
+    <div class="disc" id="disc"><span>💗</span></div>
+    <div class="song-name">Yêu Em Rất Nhiều</div>
+    <p class="sub" style="min-height:0;margin-bottom:16px">Nhism Rose</p>
+    <button id="playBtn" class="play" aria-label="Phát nhạc">▶</button>
+    <p class="sub" style="margin:16px 0 0">Anh mong mình sẽ có thật nhiều kỷ niệm đẹp nhé 💕</p>
+    <audio id="song" src="nhac.mp3" loop preload="auto"></audio>
+  </section>
 </main>
 
 <script>
@@ -284,10 +305,29 @@ goBtn.addEventListener("click", function(){
       st.textContent = ok ? "Đã gửi cho anh rồi nè 💌" : "Chưa gửi được, em bấm gửi tin nhắn cho anh giúp nhé 🥺";
     });
   }
+  setTimeout(showMusic, 5000);
   rain(30);
   $("result").scrollIntoView({behavior:"smooth", block:"center"});
 });
 
+var song = $("song"), playBtn = $("playBtn"), disc = $("disc");
+
+function showMusic(){
+  $("done").classList.add("hidden");
+  $("music").classList.remove("hidden");
+  document.body.scrollTop = 0;
+  var p = song.play();
+  if (p && p.catch) p.catch(function(){});   // nếu trình duyệt chặn, bạn ấy bấm nút ▶
+}
+song.addEventListener("play", function(){
+  playBtn.textContent = "❚❚"; disc.classList.add("playing");
+});
+song.addEventListener("pause", function(){
+  playBtn.textContent = "▶"; disc.classList.remove("playing");
+});
+playBtn.addEventListener("click", function(){
+  if (song.paused) { song.play(); } else { song.pause(); }
+});
 var icons = ["💖","💗","💕","💘","🌸","✨","💞"];
 function rain(n){
   var box = $("hearts");
