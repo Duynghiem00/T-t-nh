@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Có một điều anh muốn hỏi em 💌</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg1:#ffe3ec; --bg2:#fff0f5; --ink:#7a2347; --muted:#b0577d;
+  --card:#ffffff; --yes:#ff5c8a; --yes-ink:#ffffff; --no:#ffd3e1; --no-ink:#8c3a5c;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg1:#2b1020; --bg2:#1d0b16; --ink:#ffd9e6; --muted:#e79ab9;
+    --card:#3a1729; --yes:#ff6b97; --yes-ink:#2b0f1c; --no:#54263d; --no-ink:#ffd0e1;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg1:#2b1020; --bg2:#1d0b16; --ink:#ffd9e6; --muted:#e79ab9;
+  --card:#3a1729; --yes:#ff6b97; --yes-ink:#2b0f1c; --no:#54263d; --no-ink:#ffd0e1;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Baloo 2','Segoe UI',system-ui,sans-serif;
+  background:radial-gradient(circle at 50% 0%,var(--bg1),var(--bg2) 70%);
+  color:var(--ink);
+  display:flex;overflow-y:auto;
+}
+.card{
+  position:relative;z-index:2;margin:20px auto;
+  width:min(92vw,460px);
+  background:var(--card);
+  border-radius:36px;
+  padding:34px 24px 30px;
+  text-align:center;
+  box-shadow:0 18px 50px rgba(255,92,138,.25);
+}
+.face{font-size:92px;line-height:1;display:inline-block;transition:transform .25s}
+.face.pop{transform:scale(1.25) rotate(-6deg)}
+h1{font-size:clamp(24px,6.5vw,30px);font-weight:800;margin:14px 0 6px;line-height:1.25}
+p.sub{margin:0 0 22px;color:var(--muted);font-weight:500;min-height:1.6em}
+.btns{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  min-height:110px;flex-wrap:wrap;
+}
+button{
+  font-family:inherit;font-weight:700;border:0;cursor:pointer;
+  border-radius:999px;transition:transform .15s,font-size .2s,padding .2s;
+}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+#yes{background:var(--yes);color:var(--yes-ink);font-size:20px;padding:12px 30px;box-shadow:0 6px 16px rgba(255,92,138,.4)}
+#yes:hover{transform:scale(1.06)}
+#no{background:var(--no);color:var(--no-ink);font-size:17px;padding:10px 22px}
+#no:active{transform:scale(.92)}
+.hidden{display:none!important}
+#done h1{font-size:clamp(28px,8vw,38px)}
+.hearts{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.heart{position:absolute;top:-40px;animation:fall linear forwards;will-change:transform}
+@keyframes fall{to{transform:translateY(112vh) rotate(40deg);opacity:.85}}
+.bounce{animation:bounce 1.2s ease-in-out infinite}
+@keyframes bounce{50%{transform:translateY(-10px)}}
+.plan{text-align:left;margin-top:18px}
+.plan h2{font-size:19px;font-weight:800;margin:20px 0 8px}
+.plan .hint{font-size:14px;font-weight:500;color:var(--muted);margin:-4px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--no);color:var(--no-ink);font-size:15px;padding:7px 14px;border:2px solid transparent}
+.chip[aria-pressed="true"]{background:var(--yes);color:var(--yes-ink);border-color:var(--ink)}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.foods .chip{font-size:14px;padding:6px 11px}
+.go{display:block;width:100%;margin-top:22px;background:var(--yes);color:var(--yes-ink);font-size:19px;padding:13px}
+.go:disabled{opacity:.45;cursor:not-allowed}
+.result{margin-top:18px;background:var(--bg2);border-radius:22px;padding:16px;font-weight:500;line-height:1.5}
+.result .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.result a,.result button{font-family:inherit;font-weight:700;font-size:15px;text-decoration:none;background:var(--yes);color:var(--yes-ink);padding:9px 16px;border-radius:999px;border:0;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="hearts" id="hearts" aria-hidden="true"></div>
+
+<main class="card">
+  <section id="ask">
+    <div class="face bounce" id="face">🥰</div>
+    <h1 id="title">Em làm người yêu anh nhé?</h1>
+    <p class="sub" id="sub">Anh thích em nhiều lắm đó 💗</p>
+    <div class="btns" id="btns">
+      <button id="yes">Đồng ý 💖</button>
+      <button id="no">Không đồng ý</button>
+    </div>
+  </section>
+
+  <section id="done" class="hidden">
+    <div class="face bounce">🥳</div>
+    <h1>Yêu em nhiều lắm! 💞</h1>
+    <p class="sub" style="min-height:0">Từ giờ em là người yêu của anh rồi nha. Không được đổi ý đâu đó 😚</p>
+
+    <div class="plan">
+      <h1 style="font-size:24px;text-align:center;margin-top:6px">Tuần này mình hẹn hò nhé? 📅</h1>
+      <h2>Em rảnh ngày nào?</h2>
+      <div class="chips" id="days"></div>
+      <h2>Mấy giờ thì tiện?</h2>
+      <div class="chips" id="times"></div>
+      <h2>Mình đi đâu nè?</h2>
+      <div class="chips" id="places"></div>
+      <h2>Em muốn ăn gì?</h2>
+      <p class="hint" id="foodHint">Chọn tối đa 3 món em thích nhất</p>
+      <div class="chips foods" id="foods"></div>
+      <button class="go" id="go" disabled>Chốt lịch hẹn 💌</button>
+      <div class="result hidden" id="result" role="status">
+        <div id="resultText"></div>
+        <div id="sendStatus" style="margin-top:8px;font-size:14px;color:var(--muted)"></div>
+        <div class="row">
+          <button id="copy">Sao chép tin nhắn</button>
+          <a id="sms" class="hidden" href="#">Gửi cho anh 💬</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ✏️ Sửa chỗ này để cá nhân hóa
+var TEN = "";                       // ví dụ: "Linh" → "Linh làm người yêu anh nhé?"
+var CAU_HOI = (TEN ? TEN + " " : "Em ") + "làm người yêu anh nhé?";
+
+var MAX_NO = 10;                    // bấm "Không đồng ý" 10 lần → lần 11 chỉ còn "Đồng ý"
+var noCount = 0;
+
+var steps = [
+  {face:"🥺", sub:"Em suy nghĩ lại đi mà..."},
+  {face:"😢", sub:"Anh buồn xíu rồi nè"},
+  {face:"🥹", sub:"Anh hứa sẽ thương em thật nhiều"},
+  {face:"😭", sub:"Em nỡ lòng nào từ chối anh..."},
+  {face:"💔", sub:"Tim anh nứt một chút rồi đó"},
+  {face:"🐶", sub:"Anh sẽ ngoan như cún con luôn"},
+  {face:"🍰", sub:"Anh mua trà sữa với bánh cho em nha"},
+  {face:"😿", sub:"Em bấm nhầm đúng không?"},
+  {face:"🙏", sub:"Anh xin em đó, một cơ hội thôi"},
+  {face:"😳", sub:"Thôi... anh chỉ chừa lại một lựa chọn nè"}
+];
+
+var $ = function(id){return document.getElementById(id)};
+var yes = $("yes"), no = $("no"), face = $("face"), sub = $("sub");
+$("title").textContent = CAU_HOI;
+
+no.addEventListener("click", function(){
+  noCount++;
+  var s = steps[Math.min(noCount-1, steps.length-1)];
+  face.textContent = s.face;
+  sub.textContent = s.sub;
+  face.classList.add("pop");
+  setTimeout(function(){face.classList.remove("pop")}, 250);
+
+  // nút Đồng ý to dần, nút Không đồng ý nhỏ dần
+  yes.style.fontSize = (20 + noCount*4) + "px";
+  yes.style.padding = (12 + noCount*2) + "px " + (30 + noCount*5) + "px";
+  no.style.fontSize = Math.max(11, 17 - noCount*0.6) + "px";
+  no.style.padding = Math.max(5, 10 - noCount*0.5) + "px " + Math.max(12, 22 - noCount) + "px";
+
+  if (noCount >= MAX_NO) {
+    no.classList.add("hidden");
+    $("title").textContent = "Vậy là đồng ý rồi nhỉ? 🥰";
+  }
+  rain(4);
+});
+
+yes.addEventListener("click", function(){
+  notifyMe("🎉 Em ấy vừa bấm ĐỒNG Ý! (đã bấm \"Không đồng ý\" " + noCount + " lần)");
+  $("ask").classList.add("hidden");
+  $("done").classList.remove("hidden");
+  rain(60);
+  setInterval(function(){rain(6)}, 1200);
+  document.body.scrollTop = 0;
+});
+
+// ✏️ THÔNG BÁO VỀ MÁY BẠN (điền một trong hai, hoặc cả hai)
+var TELEGRAM_TOKEN = "";     // token bot, ví dụ "123456:ABC-DEF..."
+var TELEGRAM_CHAT_ID = "";   // chat id của bạn, ví dụ "123456789"
+var FORMSPREE_URL = "";      // ví dụ "https://formspree.io/f/abcdwxyz"
+
+function hasNotify(){
+  return !!((TELEGRAM_TOKEN && TELEGRAM_CHAT_ID) || FORMSPREE_URL);
+}
+function notifyMe(text){
+  var jobs = [];
+  if (TELEGRAM_TOKEN && TELEGRAM_CHAT_ID){
+    jobs.push(fetch("https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text})
+    }).then(function(r){return r.ok}).catch(function(){return false}));
+  }
+  if (FORMSPREE_URL){
+    jobs.push(fetch(FORMSPREE_URL, {
+      method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body: JSON.stringify({message: text})
+    }).then(function(r){return r.ok}).catch(function(){return false}));
+  }
+  if (!jobs.length) return Promise.resolve(false);
+  return Promise.all(jobs).then(function(r){return r.some(Boolean)});
+}
+
+// ✏️ Sửa lịch hẹn ở đây
+var PHONE = "";   // số điện thoại của bạn, ví dụ "0912345678" (để có nút gửi tin nhắn)
+var TIMES = ["10:00","14:00","17:30","19:00"];
+var PLACES = ["Quán cà phê nhỏ xinh ☕","Dạo hồ ngắm hoàng hôn 🌇","Xem phim rạp 🎬","Chợ đêm đi ăn vặt 🏮"];
+var MAX_FOOD = 3;
+var FOODS = [
+  ["🍜","Phở bò"],["🍢","Bún chả"],["🥖","Bánh mì"],["🌶️","Bún bò Huế"],["🍚","Cơm tấm"],
+  ["🥞","Bánh xèo"],["🌯","Gỏi cuốn"],["🥟","Chả giò"],["🦀","Bún riêu"],["🍲","Hủ tiếu"],
+  ["🍜","Mì Quảng"],["🍜","Cao lầu"],["🥢","Bánh cuốn"],["🍙","Xôi"],["🧆","Bún đậu mắm tôm"],
+  ["🍲","Lẩu"],["🍡","Nem nướng"],["🥩","Bò lá lốt"],["🥣","Cháo"],["🍗","Cơm gà Hội An"],
+  ["🦐","Bánh canh"],["🍧","Chè"],["🍜","Bún thang"],["🥟","Bánh bột lọc"],["🌮","Bánh tráng nướng"],
+  ["🐚","Ốc"],["🥘","Bánh khọt"],["☕","Cà phê trứng"],["🍮","Bánh flan"],["🍨","Sữa chua nếp cẩm"]
+];
+
+var pick = {day:"", time:"", place:"", foods:[]};
+var goBtn = $("go");
+
+function mkChip(box, label, handler){
+  var b = document.createElement("button");
+  b.type = "button"; b.className = "chip"; b.textContent = label;
+  b.setAttribute("aria-pressed","false");
+  b.addEventListener("click", function(){handler(b,label)});
+  box.appendChild(b);
+  return b;
+}
+function single(id, items, key){
+  var box = $(id);
+  items.forEach(function(it){
+    mkChip(box, it, function(b,label){
+      Array.prototype.forEach.call(box.children, function(c){c.setAttribute("aria-pressed","false")});
+      b.setAttribute("aria-pressed","true");
+      pick[key] = label; refresh();
+    });
+  });
+}
+var names = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+var days = [];
+for (var i=1;i<=7;i++){
+  var d = new Date(); d.setDate(d.getDate()+i);
+  var dd = ("0"+d.getDate()).slice(-2), mm = ("0"+(d.getMonth()+1)).slice(-2);
+  days.push(names[d.getDay()] + ", " + dd + "/" + mm);
+}
+single("days", days, "day");
+single("times", TIMES, "time");
+single("places", PLACES, "place");
+
+var foodChips = [];
+FOODS.forEach(function(f){
+  var label = f[0] + " " + f[1];
+  var chip = mkChip($("foods"), label, function(b){
+    var i = pick.foods.indexOf(label);
+    if (i >= 0){ pick.foods.splice(i,1); b.setAttribute("aria-pressed","false"); }
+    else if (pick.foods.length < MAX_FOOD){ pick.foods.push(label); b.setAttribute("aria-pressed","true"); }
+    refresh();
+  });
+  foodChips.push(chip);
+});
+
+function refresh(){
+  var full = pick.foods.length >= MAX_FOOD;
+  foodChips.forEach(function(c){
+    c.disabled = full && c.getAttribute("aria-pressed") !== "true";
+  });
+  $("foodHint").textContent = "Đã chọn " + pick.foods.length + "/" + MAX_FOOD + " món";
+  goBtn.disabled = !(pick.day && pick.time && pick.place && pick.foods.length);
+}
+
+var msg = "";
+goBtn.addEventListener("click", function(){
+  msg = "Em đồng ý hẹn hò với anh nha! 💕 " + pick.day + ", lúc " + pick.time +
+        ", mình đi: " + pick.place + ". Em muốn ăn: " + pick.foods.join(", ") + " 😋";
+  $("resultText").textContent = msg;
+  $("result").classList.remove("hidden");
+  if (PHONE){
+    var a = $("sms");
+    a.href = "sms:" + PHONE + "?body=" + encodeURIComponent(msg);
+    a.classList.remove("hidden");
+  }
+  goBtn.disabled = true;
+  var st = $("sendStatus");
+  if (hasNotify()){
+    st.textContent = "Đang gửi cho anh...";
+    notifyMe("💌 LỊCH HẸN: " + msg).then(function(ok){
+      st.textContent = ok ? "Đã gửi cho anh rồi nè 💌" : "Chưa gửi được, em bấm gửi tin nhắn cho anh giúp nhé 🥺";
+    });
+  }
+  rain(30);
+  $("result").scrollIntoView({behavior:"smooth", block:"center"});
+});
+$("copy").addEventListener("click", function(){
+  var btn = $("copy");
+  function ok(){ btn.textContent = "Đã sao chép ✓"; }
+  try {
+    navigator.clipboard.writeText(msg).then(ok, function(){ btn.textContent = "Hãy chụp màn hình gửi anh nhé 📸"; });
+  } catch(e){ btn.textContent = "Hãy chụp màn hình gửi anh nhé 📸"; }
+});
+
+var icons = ["💖","💗","💕","💘","🌸","✨","💞"];
+function rain(n){
+  var box = $("hearts");
+  for (var i=0;i<n;i++){
+    var h = document.createElement("span");
+    h.className = "heart";
+    h.textContent = icons[Math.floor(Math.random()*icons.length)];
+    h.style.left = Math.random()*100 + "vw";
+    h.style.fontSize = (16 + Math.random()*26) + "px";
+    h.style.animationDuration = (3 + Math.random()*3.5) + "s";
+    h.style.animationDelay = (Math.random()*0.8) + "s";
+    box.appendChild(h);
+    (function(el){setTimeout(function(){el.remove()}, 8000)})(h);
+  }
+}
+</script>
+</body>
+</html>
