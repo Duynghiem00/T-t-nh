@@ -244,6 +244,30 @@ function rain(n){
     (function(el){setTimeout(function(){el.remove()}, 8000)})(h);
   }
 }
+// Mưa trái tim ở 2 bên mép màn hình
+var SIDE_WIDTH = 12;       // độ rộng vùng mưa mỗi bên, tính theo % chiều ngang màn hình
+var SIDE_SPEED = 500;      // cứ mỗi bao nhiêu mili giây thì rơi thêm 1 trái tim mỗi bên (số nhỏ = dày hơn)
+var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function sideHeart(isLeft){
+  var h = document.createElement("span");
+  h.className = "heart";
+  h.textContent = icons[Math.floor(Math.random()*icons.length)];
+  var offset = Math.random() * SIDE_WIDTH;
+  h.style.left = (isLeft ? offset : 100 - SIDE_WIDTH + offset - 4) + "vw";
+  h.style.fontSize = (16 + Math.random()*22) + "px";
+  h.style.animationDuration = (4 + Math.random()*3.5) + "s";
+  $("hearts").appendChild(h);
+  setTimeout(function(){ h.remove(); }, 8000);
+}
+
+if (!reduceMotion){
+  setInterval(function(){
+    if (document.hidden) return;     // tab đang ẩn thì không tạo thêm cho nhẹ máy
+    sideHeart(true);
+    sideHeart(false);
+  }, SIDE_SPEED);
+}
 </script>
 </body>
 </html>
