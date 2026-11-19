@@ -117,14 +117,24 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <div class="plan">
       <h1 style="font-size:24px;text-align:center;margin-top:6px">Tuần này mình hẹn hò nhé? 📅</h1>
       <h2>Em rảnh ngày nào?</h2>
-      <div class="chips" id="days"></div>
+      <div class="cal">
+        <div class="cal-head">
+          <button type="button" id="calPrev" aria-label="Tháng trước">‹</button>
+          <strong id="calTitle"></strong>
+          <button type="button" id="calNext" aria-label="Tháng sau">›</button>
+        </div>
+        <div class="cal-grid" id="calDow"></div>
+        <div class="cal-grid" id="calDays"></div>
+      </div>
       <h2>Mấy giờ thì tiện?</h2>
       <div class="chips" id="times"></div>
       <h2>Mình đi đâu nè?</h2>
       <div class="chips" id="places"></div>
+      <input type="text" id="placeOther" class="other hidden" maxlength="100" placeholder="Em muốn đi đâu? Ghi vào đây nhé 💕">
       <h2>Em muốn ăn gì?</h2>
-      <p class="hint" id="foodHint">Chọn tối đa 3 món em thích nhất</p>
+      <p class="hint" id="foodHint">Chọn bao nhiêu món cũng được 😋</p>
       <div class="chips foods" id="foods"></div>
+      <input type="text" id="foodOther" class="other" maxlength="100" placeholder="Món khác em thích (nếu chưa có ở trên) 🍴">
       <button class="go" id="go" disabled>Chốt lịch hẹn 💌</button>
       <div class="result hidden" id="result" role="status">
         <div id="resultText" style="font-size:20px;font-weight:700"></div>
