@@ -140,7 +140,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
         <div class="cal-grid" id="calDays"></div>
       </div>
       <h2>Mấy giờ thì tiện?</h2>
-      <div class="chips" id="times"></div>
+      <input type="time" id="timeInput" class="other" style="margin-top:0">
       <h2>Mình đi đâu nè?</h2>
       <div class="chips" id="places"></div>
       <input type="text" id="placeOther" class="other hidden" maxlength="100" placeholder="Em muốn đi đâu? Ghi vào đây nhé 💕">
@@ -249,7 +249,6 @@ function notifyMe(text){
 
 // ✏️ Sửa lịch hẹn ở đây
 var PHONE = "";   // số điện thoại của bạn, ví dụ "0912345678" (để có nút gửi tin nhắn)
-var TIMES = ["10:00","14:00","17:30","19:00"];
 var OTHER_PLACE = "Chỗ khác ✏️";
 var PLACES = [
   "Quán cà phê nhỏ xinh ☕",
@@ -327,7 +326,10 @@ $("calPrev").addEventListener("click", function(){ viewM--; if (viewM<0){viewM=1
 $("calNext").addEventListener("click", function(){ viewM++; if (viewM>11){viewM=0;viewY++;} renderCal(); });
 renderCal();
 
-single("times", TIMES, "time");
+$("timeInput").addEventListener("input", function(){
+  pick.time = this.value;   // dạng "19:30"
+  refresh();
+});
 single("places", PLACES.concat([OTHER_PLACE]), "place");
 
 $("places").addEventListener("click", function(){
