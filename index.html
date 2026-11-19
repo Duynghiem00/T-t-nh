@@ -456,7 +456,7 @@ song.addEventListener("pause", function(){
 playBtn.addEventListener("click", function(){
   if (song.paused) { song.play(); } else { song.pause(); }
 });
-var UNLOCK_SECONDS = 120;            // số giây phải nghe, 120 = 2 phút
+var UNLOCK_SECONDS = 10;            // số giây phải nghe, 120 = 2 phút
 var SECRET_PAGE = "bi-mat.html";     // tên file trang bí mật, hoặc link web khác
 
 var listened = 0;
@@ -484,9 +484,9 @@ secretBtn.addEventListener("click", function(){
   setTimeout(go, 1500);   // phòng khi mạng chậm thì vẫn chuyển trang
 });
 // ✏️ BẠN TỰ NHẬP Ở ĐÂY
-var LOGIN_USER = "NhismyeuGiang";   // tên đăng nhập đúng, ví dụ "bemeo"
-var LOGIN_PASS = "12122000";   // mật khẩu đúng, ví dụ "14022025"
-var HINT_USER  = "NhismyeuGiang";   // gợi ý mờ dưới ô tên, ví dụ "Biệt danh anh hay gọi em"
+var LOGIN_USER = "Nhism";   // tên đăng nhập đúng, ví dụ "bemeo"
+var LOGIN_PASS = "1212";   // mật khẩu đúng, ví dụ "14022025"
+var HINT_USER  = "Nhism";   // gợi ý mờ dưới ô tên, ví dụ "Biệt danh anh hay gọi em"
 var HINT_PASS  = "Sinh nhật anh";   // gợi ý mờ dưới ô mật khẩu, ví dụ "Ngày mình quen nhau (ngày tháng năm)"
 
 var loginBox = $("login"), uIn = $("loginUser"), pIn = $("loginPass");
