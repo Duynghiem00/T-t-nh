@@ -105,6 +105,13 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .day[aria-pressed="true"]{background:var(--yes);color:var(--yes-ink)}
 .other{width:100%;margin-top:10px;font-family:inherit;font-size:16px;padding:10px 14px;border-radius:16px;border:2px solid var(--no);background:var(--card);color:var(--ink)}
 .other:focus{outline:3px solid var(--yes)}
+.login-field{margin-bottom:14px;text-align:left}
+.login-input{width:100%;font-family:inherit;font-size:17px;padding:12px 16px;border-radius:18px;border:2px solid var(--no);background:var(--card);color:var(--ink)}
+.login-input::placeholder{color:var(--muted);opacity:.6}
+.login-input:focus{outline:3px solid var(--yes)}
+.login-field small{display:block;margin:5px 0 0 8px;font-size:13px;color:var(--muted);opacity:.6}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 @media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}.disc{animation:none}
 </style>
 </head>
@@ -112,7 +119,23 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 <div class="hearts" id="hearts" aria-hidden="true"></div>
 
 <main class="card">
-  <section id="ask">
+    <section id="login">
+      <div class="face bounce">🔐</div>
+      <h1>Mở khóa món quà nhỏ 🎁</h1>
+      <p class="sub">Nhập đúng tên đăng nhập và mật khẩu nhé</p>
+      <div class="login-field">
+        <input type="text" id="loginUser" class="login-input" placeholder="Tên đăng nhập" autocomplete="off">
+        <small id="hintUser"></small>
+      </div>
+      <div class="login-field">
+        <input type="password" id="loginPass" class="login-input" placeholder="Mật khẩu" autocomplete="off">
+        <small id="hintPass"></small>
+      </div>
+      <button id="loginBtn" class="go" style="margin-top:6px">Mở khóa 💖</button>
+      <p id="loginMsg" class="sub" style="margin:10px 0 0"></p>
+    </section>
+
+    <section id="ask" class="hidden">
     <div class="face bounce" id="face">🥰</div>
     <h1 id="title">Em làm người yêu anh nhé?</h1>
     <p class="sub" id="sub">Anh thích em nhiều lắm đó 💗</p>
@@ -419,6 +442,39 @@ song.addEventListener("pause", function(){
 });
 playBtn.addEventListener("click", function(){
   if (song.paused) { song.play(); } else { song.pause(); }
+});
+// ✏️ BẠN TỰ NHẬP Ở ĐÂY
+var LOGIN_USER = "NhismyeuGiang";   // tên đăng nhập đúng, ví dụ "bemeo"
+var LOGIN_PASS = "12122000";   // mật khẩu đúng, ví dụ "14022025"
+var HINT_USER  = "NhismyeuGiang";   // gợi ý mờ dưới ô tên, ví dụ "Biệt danh anh hay gọi em"
+var HINT_PASS  = "Sinh nhật anh";   // gợi ý mờ dưới ô mật khẩu, ví dụ "Ngày mình quen nhau (ngày tháng năm)"
+
+var loginBox = $("login"), uIn = $("loginUser"), pIn = $("loginPass");
+$("hintUser").textContent = HINT_USER;
+$("hintPass").textContent = HINT_PASS;
+
+function unlock(){
+  loginBox.classList.add("hidden");
+  $("ask").classList.remove("hidden");
+}
+if (!LOGIN_USER && !LOGIN_PASS) unlock();   // chưa điền thì bỏ qua đăng nhập
+
+function tryLogin(){
+  var okUser = uIn.value.trim().toLowerCase() === LOGIN_USER.trim().toLowerCase();
+  var okPass = pIn.value.trim() === LOGIN_PASS.trim();
+  if (okUser && okPass){
+    unlock();
+    rain(15);
+  } else {
+    $("loginMsg").textContent = "Chưa đúng rồi, em thử lại nha 🥺";
+    loginBox.classList.remove("shake");
+    void loginBox.offsetWidth;
+    loginBox.classList.add("shake");
+  }
+}
+$("loginBtn").addEventListener("click", tryLogin);
+[uIn, pIn].forEach(function(el){
+  el.addEventListener("keydown", function(e){ if (e.key === "Enter") tryLogin(); });
 });
 var icons = ["💖","💗","💕","💘","🌸","✨","💞"];
 function rain(n){
