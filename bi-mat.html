@@ -36,7 +36,7 @@ body{
 }
 /* Ảnh nền mờ */
 .bg{position:fixed;inset:-24px;z-index:0;background-position:center;background-size:cover;background-repeat:no-repeat}
-.hearts{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.hearts{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
 .heart{position:absolute;top:-40px;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(112vh) rotate(40deg);opacity:.85}}
 
@@ -247,7 +247,6 @@ function rain(n){
 // Mưa trái tim ở 2 bên mép màn hình
 var SIDE_WIDTH = 12;       // độ rộng vùng mưa mỗi bên, tính theo % chiều ngang màn hình
 var SIDE_SPEED = 500;      // cứ mỗi bao nhiêu mili giây thì rơi thêm 1 trái tim mỗi bên (số nhỏ = dày hơn)
-var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function sideHeart(isLeft){
   var h = document.createElement("span");
@@ -261,7 +260,7 @@ function sideHeart(isLeft){
   setTimeout(function(){ h.remove(); }, 8000);
 }
 
-if (!reduceMotion){
+if (true){
   setInterval(function(){
     if (document.hidden) return;     // tab đang ẩn thì không tạo thêm cho nhẹ máy
     sideHeart(true);
