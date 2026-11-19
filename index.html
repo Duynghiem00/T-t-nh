@@ -141,7 +141,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <p class="sub" id="sub">Anh thích em nhiều lắm đó 💗</p>
     <div class="btns" id="btns">
       <button id="yes">Đồng ý 💖</button>
-      <button id="no">Không đồng ý</button>
+      <button id="no">Để em suy nghĩ đã</button>
     </div>
   </section>
 
@@ -198,7 +198,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 var TEN = "";                       // ví dụ: "Linh" → "Linh làm người yêu anh nhé?"
 var CAU_HOI = (TEN ? TEN + " " : "Em ") + "làm người yêu anh nhé?";
 
-var MAX_NO = 10;                    // bấm "Không đồng ý" 10 lần → lần 11 chỉ còn "Đồng ý"
+var MAX_NO = 10;                    // bấm "Để em suy nghĩ đã" 10 lần → lần 11 chỉ còn "Đồng ý"
 var noCount = 0;
 
 var steps = [
@@ -226,7 +226,7 @@ no.addEventListener("click", function(){
   face.classList.add("pop");
   setTimeout(function(){face.classList.remove("pop")}, 250);
 
-  // nút Đồng ý to dần, nút Không đồng ý nhỏ dần
+  // nút Đồng ý to dần, nút Để em suy nghĩ đã nhỏ dần
   yes.style.fontSize = (20 + noCount*4) + "px";
   yes.style.padding = (12 + noCount*2) + "px " + (30 + noCount*5) + "px";
   no.style.fontSize = Math.max(11, 17 - noCount*0.6) + "px";
@@ -240,7 +240,7 @@ no.addEventListener("click", function(){
 });
 
 yes.addEventListener("click", function(){
-  notifyMe("🎉 Em ấy vừa bấm ĐỒNG Ý! (đã bấm \"Không đồng ý\" " + noCount + " lần)");
+  notifyMe("🎉 Em ấy vừa bấm ĐỒNG Ý! (đã bấm \"Để em suy nghĩ đã\" " + noCount + " lần)");
   $("ask").classList.add("hidden");
   $("done").classList.remove("hidden");
   rain(60);
