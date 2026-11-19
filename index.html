@@ -367,19 +367,31 @@ function updateTime(){
 }
 hourSel.addEventListener("change", updateTime);
 minSel.addEventListener("change", updateTime);
-single("places", PLACES.concat([OTHER_PLACE]), "place");
+pick.places = [];
+PLACES.concat([OTHER_PLACE]).forEach(function(p){
+  mkChip($("places"), p, function(b){
+    var i = pick.places.indexOf(p);
+    if (i >= 0){ pick.places.splice(i,1); b.setAttribute("aria-pressed","false"); }
+    else { pick.places.push(p); b.setAttribute("aria-pressed","true"); }
 
-$("places").addEventListener("click", function(){
-  var other = (pick.place === OTHER_PLACE);
-  $("placeOther").classList.toggle("hidden", !other);
-  if (other) $("placeOther").focus();
-  refresh();
+    var other = pick.places.indexOf(OTHER_PLACE) >= 0;
+    $("placeOther").classList.toggle("hidden", !other);
+    if (other && i < 0) $("placeOther").focus();
+    refresh();
+  });
+});
+
 });
 $("placeOther").addEventListener("input", refresh);
 $("foodOther").addEventListener("input", refresh);
 
-function placeValue(){
-  return pick.place === OTHER_PLACE ? $("placeOther").value.trim() : pick.place;
+function placeList(){
+  var list = pick.places.filter(function(p){ return p !== OTHER_PLACE; });
+  if (pick.places.indexOf(OTHER_PLACE) >= 0){
+    var o = $("placeOther").value.trim();
+    if (o) list.push(o);
+  }
+  return list;
 }
 function foodList(){
   var list = pick.foods.slice();
@@ -403,13 +415,13 @@ FOODS.forEach(function(f){
 function refresh(){
   var n = pick.foods.length;
   $("foodHint").textContent = n ? "Đã chọn " + n + " món 😋" : "Chọn bao nhiêu món cũng được 😋";
-  goBtn.disabled = !(pick.day && pick.time && placeValue() && foodList().length);
+  goBtn.disabled = !(pick.day && pick.time && placeList().length && foodList().length);
 }
 
 var msg = "";
 goBtn.addEventListener("click", function(){
   msg = "Em cũng muốn hẹn hò với anh nha! 💕 " + pick.day + ", lúc " + pick.time +
-      ", mình đi: " + placeValue() + ". Em muốn ăn: " + foodList().join(", ") + " 😋";
+      ", mình đi: " + placeList().join(", + ". Em muốn ăn: " + foodList().join(", ") + " 😋";
   $("resultText").textContent = "Cảm ơn em đã đồng ý 💖";
   $("result").classList.remove("hidden");
   goBtn.disabled = true;
