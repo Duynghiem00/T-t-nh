@@ -189,6 +189,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <p class="sub" style="min-height:0;margin-bottom:16px">Nhism Rose</p>
     <button id="playBtn" class="play" aria-label="Phát nhạc">▶</button>
     <p class="sub" style="margin:16px 0 0">Anh mong mình sẽ có thật nhiều kỷ niệm đẹp nhé 💕</p>
+    <button id="secretBtn" class="go" disabled>🔒 Đến nơi bí mật</button>
+    <p id="secretHint" class="sub" style="margin:8px 0 0;min-height:0">Em nghe nhạc 1 chút nhé 💕🎧</p>
     <audio id="song" src="nhac.mp3" loop preload="auto"></audio>
   </section>
 </main>
@@ -453,6 +455,33 @@ song.addEventListener("pause", function(){
 });
 playBtn.addEventListener("click", function(){
   if (song.paused) { song.play(); } else { song.pause(); }
+});
+var UNLOCK_SECONDS = 120;            // số giây phải nghe, 120 = 2 phút
+var SECRET_PAGE = "bi-mat.html";     // tên file trang bí mật, hoặc link web khác
+
+var listened = 0;
+var secretBtn = $("secretBtn"), secretHint = $("secretHint");
+
+function fmt(s){ return Math.floor(s/60) + ":" + pad(s%60); }
+
+setInterval(function(){
+  if (song.paused || listened >= UNLOCK_SECONDS) return;   // chỉ đếm khi nhạc đang phát
+  listened++;
+  if (listened >= UNLOCK_SECONDS){
+    secretBtn.disabled = false;
+    secretBtn.textContent = "🔓 Đến nơi bí mật";
+    secretHint.textContent = "Mở khóa rồi nè, bấm đi em 💖";
+  } else {
+    secretHint.textContent = "Nghe thêm " + fmt(UNLOCK_SECONDS - listened) + " nữa để mở khóa 🎧";
+  }
+}, 1000);
+
+secretBtn.addEventListener("click", function(){
+  secretBtn.disabled = true;
+  var gone = false;
+  function go(){ if (!gone){ gone = true; window.location.href = SECRET_PAGE; } }
+  notifyMe("📍 Em ấy vừa bấm nút Đến nơi bí mật!").then(go, go);
+  setTimeout(go, 1500);   // phòng khi mạng chậm thì vẫn chuyển trang
 });
 // ✏️ BẠN TỰ NHẬP Ở ĐÂY
 var LOGIN_USER = "NhismyeuGiang";   // tên đăng nhập đúng, ví dụ "bemeo"
