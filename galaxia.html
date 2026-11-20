@@ -147,7 +147,12 @@ function roseTexture(hue,light){
   x.fillStyle='hsl('+hue+',100%,30%)';x.beginPath();x.arc(0,0,5,0,6.283);x.fill();
   return new THREE.CanvasTexture(c);
 }
-const roseTex=[roseTexture(215,48),roseTexture(200,52),roseTexture(225,40),roseTexture(190,58)];
+const roseTex=[
+  roseTexture(0,48),
+  roseTexture(350,52),
+  roseTexture(5,45),
+  roseTexture(345,55)
+];
 const floaters=[]; const orbit=new THREE.Group(); scene.add(orbit);
 function addFloater(sprite,rMin,rMax,yMin,yMax,speed){
   const f={s:sprite,r:R(rMin,rMax),a:R(0,6.283),y:R(yMin,yMax),v:R(.04,.12)*speed*(Math.random()<.5?-1:1),ph:R(0,6.28)};
@@ -158,6 +163,68 @@ for(let i=0;i<16;i++){
   const s=new THREE.Sprite(m);const k=R(.7,1.5);s.scale.set(k,k,1);
   addFloater(s,2.5,7.5,.2,4.2,1);
 }
+
+/* ---------- Trái tim nhiều màu ---------- */
+
+function heartTexture(color1,color2){
+  const c=document.createElement('canvas');
+  c.width=c.height=128;
+  const x=c.getContext('2d');
+
+  const g=x.createLinearGradient(20,20,108,108);
+  g.addColorStop(0,color1);
+  g.addColorStop(1,color2);
+
+  x.fillStyle=g;
+  x.shadowColor=color1;
+  x.shadowBlur=18;
+
+  x.beginPath();
+  x.moveTo(64,108);
+  x.bezierCurveTo(50,94,10,68,10,42);
+  x.bezierCurveTo(10,8,52,5,64,34);
+  x.bezierCurveTo(76,5,118,8,118,42);
+  x.bezierCurveTo(118,68,78,94,64,108);
+  x.closePath();
+
+  x.fill();
+
+  return new THREE.CanvasTexture(c);
+}
+
+const heartColors=[
+  ['#ff1744','#ff80ab'],
+  ['#ff00cc','#9900ff'],
+  ['#ffcc00','#ff5722'],
+  ['#00e5ff','#2979ff'],
+  ['#ff4081','#e040fb'],
+  ['#ff5252','#b71c1c'],
+  ['#76ff03','#00c853']
+];
+
+const heartTextures=heartColors.map(
+  colors=>heartTexture(colors[0],colors[1])
+);
+
+// Tạo 22 trái tim bay quanh thiên hà
+for(let i=0;i<22;i++){
+
+  const m=new THREE.SpriteMaterial({
+    map:heartTextures[i%heartTextures.length],
+    transparent:true,
+    depthWrite:false
+  });
+
+  const s=new THREE.Sprite(m);
+
+  const k=R(.35,.85);
+  s.scale.set(k,k,1);
+
+  addFloater(s,2.5,7.5,.2,4.2,1.2);
+}
+
+/* ---------- Các câu chữ ---------- */
+
 FRASES.forEach(t=>{ addFloater(textSprite(t,52,512,128),3,7,.4,3.2,.7); });
 
 /* ---------- Interacción ---------- */
