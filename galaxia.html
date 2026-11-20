@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Galaxia de Flores Azules</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;overflow:hidden}
+html,body,#container,canvas{cursor:crosshair}
+#container{width:100vw;height:100vh;background:radial-gradient(circle at center,#001122 0%,#000000 100%);position:fixed;top:0;left:0;touch-action:none}
+canvas{position:fixed;top:0;left:0;z-index:1}
+#modalCarta{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.85);z-index:100;justify-content:center;align-items:center;flex-direction:column;opacity:0;transition:opacity .3s ease}
+#modalCarta.show{opacity:1}
+#carta{max-width:88vw;max-height:78vh;overflow:auto;padding:28px 24px;border-radius:15px;color:#e8f7ff;background:linear-gradient(160deg,#04233f,#010912);box-shadow:0 0 30px rgba(0,234,255,.6);font-family:Georgia,serif;line-height:1.6;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275)}
+#carta h2{font-size:22px;margin-bottom:12px;color:#7fe9ff}
+#carta p{font-size:16px;white-space:pre-line}
+#cerrarModal{margin-top:20px;padding:10px 30px;font-size:18px;font-weight:bold;color:#fff;background-color:#008cff;border:none;border-radius:25px;cursor:pointer;box-shadow:0 4px 15px rgba(0,234,255,.4);transition:transform .2s ease,background-color .2s ease}
+#cerrarModal:active{transform:scale(.95)}
+@keyframes popIn{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+#playBtn{position:fixed;bottom:25px;right:25px;left:auto;z-index:200;padding:12px 22px;border:2px solid #00eaff;border-radius:30px;background:linear-gradient(135deg,#00eaff,#008cff);color:#fff;font-size:15px;font-weight:bold;cursor:pointer;box-shadow:0 0 10px rgba(0,234,255,.8),0 0 25px rgba(0,174,255,.5);transition:all .3s ease;white-space:nowrap}
+#playBtn:hover{transform:scale(1.05);box-shadow:0 0 15px rgba(0,234,255,1),0 0 35px rgba(0,174,255,.7)}
+#playBtn:active{transform:scale(.95)}
+@media (max-width:600px){#playBtn{bottom:18px;right:15px;padding:10px 17px;font-size:13px;border-radius:25px}}
+</style>
+</head>
+<body>
+<div id="container"></div>
+
+<div id="modalCarta">
+  <div id="carta"><h2 id="cartaTitulo"></h2><p id="cartaTexto"></p></div>
+  <button id="cerrarModal">Cerrar</button>
+</div>
+<button id="playBtn">▶ REPRODUCIR</button>
+<audio id="miAudio" loop></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ====== PERSONALIZA AQUÍ ====== */
+const MUSICA_URL = "";   // pega aquí el enlace de tu canción (.mp3). Déjalo vacío si no quieres música
+const CARTA_TITULO = "Para ti 💙";
+const CARTA_TEXTO = "Eres mi todo.\nCada flor de esta galaxia es un motivo\npor el que te quiero.\n\nTe amo.";
+const FRASES = ["Te quiero 💙","Eres mi todo 💙","Me encantas","Amor de mi vida","Siempre juntos","Te amo","Mi universo","Contigo todo"];
+/* ================================ */
+
+const R = (a,b)=>a+Math.random()*(b-a);
+const G = ()=>(Math.random()+Math.random()+Math.random()-1.5)/1.5;
+
+const container = document.getElementById('container');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .1, 300);
+let camDist = innerWidth < 600 ? 17 : 13, camPitch = .38, yaw = 0;
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+container.appendChild(renderer.domElement);
+
+/* textura de punto brillante */
+function dotTex(){
+  const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+  const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);
+}
+const DOT = dotTex();
+function pointsMat(size){
+  return new THREE.PointsMaterial({size,map:DOT,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true});
+}
+
+/* ---------- Galaxia ---------- */
+const galaxy = new THREE.Group(); scene.add(galaxy);
+(function(){
+  const N = innerWidth<600 ? 26000 : 42000, arms = 3;
+  const pos=new Float32Array(N*3), col=new Float32Array(N*3), c=new THREE.Color();
+  const core=new THREE.Color('#ffffff'), mid=new THREE.Color('#33e0ff'), out=new THREE.Color('#1346ff');
+  for(let i=0;i<N;i++){
+    const r=Math.pow(Math.random(),1.5)*10;
+    const a=(i%arms)/arms*Math.PI*2 + r*.55 + G()*(.18+r*.05);
+    pos[i*3]=Math.cos(a)*r+G()*.15; pos[i*3+1]=G()*.35*(1-r/11); pos[i*3+2]=Math.sin(a)*r+G()*.15;
+    const t=r/10;
+    if(t<.25) c.copy(core).lerp(mid,t/.25); else c.copy(mid).lerp(out,(t-.25)/.75);
+    col.set([c.r,c.g,c.b],i*3);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  galaxy.add(new THREE.Points(g,pointsMat(.07)));
+})();
+
+/* ---------- Estrellas de fondo ---------- */
+(function(){
+  const N=1800,pos=new Float32Array(N*3),col=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const r=R(50,120),a=R(0,6.283),b=Math.acos(R(-1,1));
+    pos.set([r*Math.sin(b)*Math.cos(a),r*Math.cos(b),r*Math.sin(b)*Math.sin(a)],i*3);
+    const l=R(.5,1);col.set([l*.7,l*.85,l],i*3);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(g,pointsMat(.9)));
+})();
+
+/* ---------- Corazón de partículas ---------- */
+const heartGroup = new THREE.Group(); heartGroup.position.set(0,3.6,0); scene.add(heartGroup);
+let heartPts;
+(function(){
+  const N=3200,pos=new Float32Array(N*3),col=new Float32Array(N*3),c=new THREE.Color();
+  for(let i=0;i<N;i++){
+    const t=Math.random()*Math.PI*2, k=.12;
+    const x=16*Math.pow(Math.sin(t),3), y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    const s=1+G()*.07;
+    pos.set([x*k*s+G()*.05,y*k*s+G()*.05,G()*.25],i*3);
+    c.set('#6ff3ff').lerp(new THREE.Color('#ffffff'),Math.random()*.7);
+    col.set([c.r,c.g,c.b],i*3);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  heartPts=new THREE.Points(g,pointsMat(.09));
+  heartGroup.add(heartPts);
+})();
+
+/* ---------- Texto en sprites ---------- */
+function textSprite(txt,px,w,h){
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  x.font='italic bold '+px+'px Georgia,serif';x.textAlign='center';x.textBaseline='middle';
+  x.shadowColor='#00eaff';x.shadowBlur=14;x.fillStyle='#ffffff';x.fillText(txt,w/2,h/2);
+  const m=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false});
+  const s=new THREE.Sprite(m);s.scale.set(w/h*.5,.5,1);return s;
+}
+const teamo=textSprite('Te amo 💙',70,512,128); teamo.scale.set(2.4,.6,1); teamo.position.set(0,.25,0); heartGroup.add(teamo);
+
+/* ---------- Rosas azules ---------- */
+function roseTexture(hue,light){
+  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
+  x.translate(64,64);
+  for(let ring=0;ring<4;ring++){
+    const n=5-Math.floor(ring/2), rad=58-ring*13;
+    for(let i=0;i<n;i++){
+      x.save();x.rotate(i/n*Math.PI*2+ring*.7);
+      const g=x.createRadialGradient(0,-rad*.5,2,0,-rad*.5,rad*.8);
+      g.addColorStop(0,'hsl('+hue+',95%,'+(light+16-ring*4)+'%)');g.addColorStop(1,'hsl('+(hue+6)+',90%,'+(light-14-ring*3)+'%)');
+      x.fillStyle=g;x.strokeStyle='hsla('+hue+',100%,85%,.55)';x.lineWidth=1.3;
+      x.beginPath();x.ellipse(0,-rad*.5,rad*.5,rad*.6,0,0,6.283);x.fill();x.stroke();x.restore();
+    }
+  }
+  x.fillStyle='hsl('+hue+',100%,30%)';x.beginPath();x.arc(0,0,5,0,6.283);x.fill();
+  return new THREE.CanvasTexture(c);
+}
+const roseTex=[roseTexture(215,48),roseTexture(200,52),roseTexture(225,40),roseTexture(190,58)];
+const floaters=[]; const orbit=new THREE.Group(); scene.add(orbit);
+function addFloater(sprite,rMin,rMax,yMin,yMax,speed){
+  const f={s:sprite,r:R(rMin,rMax),a:R(0,6.283),y:R(yMin,yMax),v:R(.04,.12)*speed*(Math.random()<.5?-1:1),ph:R(0,6.28)};
+  orbit.add(sprite);floaters.push(f);
+}
+for(let i=0;i<16;i++){
+  const m=new THREE.SpriteMaterial({map:roseTex[i%4],transparent:true,depthWrite:false});
+  const s=new THREE.Sprite(m);const k=R(.7,1.5);s.scale.set(k,k,1);
+  addFloater(s,2.5,7.5,.2,4.2,1);
+}
+FRASES.forEach(t=>{ addFloater(textSprite(t,52,512,128),3,7,.4,3.2,.7); });
+
+/* ---------- Interacción ---------- */
+let playing=false;
+const ptrs=new Map(); let moved=0, pinch=0;
+const el=renderer.domElement;
+el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=0;
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch=Math.hypot(a.x-b.x,a.y-b.y);}});
+el.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId);if(!p)return;
+  const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+  if(ptrs.size===1){yaw-=dx*.006;camPitch=Math.max(.05,Math.min(1.2,camPitch+dy*.004));}
+  else if(ptrs.size===2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);camDist=Math.max(6,Math.min(30,camDist*(pinch/d)));pinch=d;}
+});
+const up=e=>{
+  if(ptrs.size===1&&moved<8)tap(e.clientX,e.clientY);
+  ptrs.delete(e.pointerId);
+};
+el.addEventListener('pointerup',up);el.addEventListener('pointercancel',e=>ptrs.delete(e.pointerId));
+el.addEventListener('wheel',e=>{e.preventDefault();camDist=Math.max(6,Math.min(30,camDist*(e.deltaY>0?1.07:.93)));},{passive:false});
+
+/* toque sobre el corazón -> abre la carta */
+const ray=new THREE.Raycaster(),hit=new THREE.Mesh(new THREE.SphereGeometry(2,8,8),new THREE.MeshBasicMaterial({visible:false}));
+heartGroup.add(hit);
+function tap(x,y){
+  ray.setFromCamera({x:x/innerWidth*2-1,y:-(y/innerHeight)*2+1},camera);
+  if(ray.intersectObject(hit).length)abrirCarta();
+}
+const modal=document.getElementById('modalCarta');
+function abrirCarta(){
+  document.getElementById('cartaTitulo').textContent=CARTA_TITULO;
+  document.getElementById('cartaTexto').textContent=CARTA_TEXTO;
+  modal.style.display='flex';requestAnimationFrame(()=>modal.classList.add('show'));
+}
+document.getElementById('cerrarModal').onclick=()=>{modal.classList.remove('show');setTimeout(()=>modal.style.display='none',300);};
+
+/* botón reproducir */
+const audio=document.getElementById('miAudio'),btn=document.getElementById('playBtn');
+if(MUSICA_URL)audio.src=MUSICA_URL;
+btn.onclick=()=>{
+  playing=!playing;
+  btn.textContent=playing?'⏸ PAUSAR':'▶ REPRODUCIR';
+  if(MUSICA_URL){playing?audio.play().catch(()=>{}):audio.pause();}
+};
+
+/* ---------- Bucle ---------- */
+const clock=new THREE.Clock();
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=clock.getDelta(),t=clock.elapsedTime,boost=playing?2.6:1;
+  yaw+=dt*.08*boost;
+  galaxy.rotation.y+=dt*.05*boost;
+  camera.position.set(Math.sin(yaw)*Math.cos(camPitch)*camDist,Math.sin(camPitch)*camDist+1.5,Math.cos(yaw)*Math.cos(camPitch)*camDist);
+  camera.lookAt(0,1.8,0);
+  heartGroup.quaternion.copy(camera.quaternion);          // el corazón siempre mira a la cámara
+  const beat=1+.05*Math.sin(t*3)+.03*Math.sin(t*6);
+  heartGroup.scale.setScalar(beat);
+  heartGroup.position.y=3.6+Math.sin(t*1.2)*.12;
+  floaters.forEach(f=>{
+    f.a+=f.v*dt*boost;
+    f.s.position.set(Math.cos(f.a)*f.r,f.y+Math.sin(t*.8+f.ph)*.25,Math.sin(f.a)*f.r);
+  });
+  renderer.render(scene,camera);
+}
+loop();
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>
