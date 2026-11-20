@@ -481,6 +481,7 @@ setInterval(function(){
 }, 1000);
 
 function goTo(page, text){
+  try { sessionStorage.setItem("unlocked","1"); } catch(e){}   // nhớ là bạn ấy đã mở khóa
   secretBtn.disabled = true;
   funBtn.disabled = true;
   var gone = false;
@@ -542,6 +543,24 @@ function rain(n){
     (function(el){setTimeout(function(){el.remove()}, 8000)})(h);
   }
 }
+// Quay lại từ trang bí mật hoặc trang vui: mở thẳng phần chọn 2 nút
+var unlockedBefore = false;
+try { unlockedBefore = !!sessionStorage.getItem("unlocked"); } catch(e){}
+if (location.hash === "#chon" && unlockedBefore){
+  $("login").classList.add("hidden");
+  $("ask").classList.add("hidden");
+  $("done").classList.add("hidden");
+  $("music").classList.remove("hidden");
+  listened = UNLOCK_SECONDS;
+  secretBtn.disabled = false; funBtn.disabled = false;
+  secretBtn.textContent = "🔓 Đến nơi bí mật";
+  funBtn.textContent = "🔓 Chỗ này cũng vui á";
+  secretHint.textContent = "Em chọn một nơi nhé 💖";
+}
+// Nếu trình duyệt giữ lại trang cũ khi bấm lùi thì mở lại hai nút
+window.addEventListener("pageshow", function(e){
+  if (e.persisted){ secretBtn.disabled = false; funBtn.disabled = false; }
+});
 </script>
 </body>
 </html>
