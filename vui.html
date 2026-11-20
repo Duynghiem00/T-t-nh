@@ -48,7 +48,7 @@ var HEART_HOLD = 4500;               // thời gian giữ hình trái tim (mili 
 var TEXT_HOLD  = 4500;               // thời gian giữ chữ
 var IMAGE_HOLD = 5000;               // thời gian giữ mỗi ảnh (5000 = 5 giây)
 var TEXT_COLORS = ["#ffffff", "#ffffff", "#e0f2fe"];   // màu chữ: trắng cho nét nhất. Muốn hồng: ["#ff7eb6","#ffc2dc","#ffffff"], vàng: ["#fde047","#fef9c3","#ffffff"]
-var BG_HEARTS = 30;                  // số trái tim bay phía sau (nhiều quá điện thoại cũ có thể giật)
+var BG_HEARTS = 90;                  // số trái tim bay phía sau (nhiều quá điện thoại cũ có thể giật)
 var BG_HEART_COLORS = ["#3b82f6","#60a5fa","#93c5fd","#f472b6"];   // xanh và một chút hồng
 var BLUE = ["#3b82f6","#60a5fa","#93c5fd","#2563eb","#bfdbfe","#1d4ed8"];
 
@@ -163,7 +163,7 @@ function build(){
   W = Math.floor(innerWidth); H = Math.floor(innerHeight); dpr = Math.min(window.devicePixelRatio||1, 2);
   cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
   cx = W/2; cy = H*.45; sc = Math.min(W*.8/34, H*.5/30);
-  N = W < 700 ? 2200 : 3600;
+  N = W < 700 ? 3000 : 5000;
   while (parts.length < N) parts.push(mk());
   parts.length = N;
   floats = [];
