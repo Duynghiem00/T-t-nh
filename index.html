@@ -190,6 +190,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <button id="playBtn" class="play" aria-label="Phát nhạc">▶</button>
     <p class="sub" style="margin:16px 0 0">Anh mong mình sẽ có thật nhiều kỷ niệm đẹp nhé 💕</p>
     <button id="secretBtn" class="go" disabled>🔒 Đến nơi bí mật</button>
+    <button id="funBtn" class="go" style="margin-top:10px" disabled>🔒 Chỗ này cũng vui á</button>
     <p id="secretHint" class="sub" style="margin:8px 0 0;min-height:0">Em nghe nhạc 1 chút nhé 💕🎧</p>
     <audio id="song" src="nhac.mp3" loop preload="auto"></audio>
   </section>
@@ -456,11 +457,12 @@ song.addEventListener("pause", function(){
 playBtn.addEventListener("click", function(){
   if (song.paused) { song.play(); } else { song.pause(); }
 });
-var UNLOCK_SECONDS = 10;            // số giây phải nghe, 120 = 2 phút
-var SECRET_PAGE = "bi-mat.html";     // tên file trang bí mật, hoặc link web khác
+var UNLOCK_SECONDS = 120;            // số giây phải nghe, 120 = 2 phút
+var SECRET_PAGE = "bi-mat.html";     // trang của nút "Đến nơi bí mật"
+var FUN_PAGE    = "vui.html";        // trang của nút "Chỗ này cũng vui á"
 
 var listened = 0;
-var secretBtn = $("secretBtn"), secretHint = $("secretHint");
+var secretBtn = $("secretBtn"), funBtn = $("funBtn"), secretHint = $("secretHint");
 
 function fmt(s){ return Math.floor(s/60) + ":" + pad(s%60); }
 
@@ -469,19 +471,28 @@ setInterval(function(){
   listened++;
   if (listened >= UNLOCK_SECONDS){
     secretBtn.disabled = false;
+    funBtn.disabled = false;
     secretBtn.textContent = "🔓 Đến nơi bí mật";
-    secretHint.textContent = "Mở khóa rồi nè, bấm đi em 💖";
+    funBtn.textContent = "🔓 Chỗ này cũng vui á";
+    secretHint.textContent = "Mở khóa rồi nè, em chọn một nơi nhé 💖";
   } else {
     secretHint.textContent = "Nghe thêm " + fmt(UNLOCK_SECONDS - listened) + " nữa để mở khóa 🎧";
   }
 }, 1000);
 
-secretBtn.addEventListener("click", function(){
+function goTo(page, text){
   secretBtn.disabled = true;
+  funBtn.disabled = true;
   var gone = false;
-  function go(){ if (!gone){ gone = true; window.location.href = SECRET_PAGE; } }
-  notifyMe("📍 Em ấy vừa bấm nút Đến nơi bí mật!").then(go, go);
+  function go(){ if (!gone){ gone = true; window.location.href = page; } }
+  notifyMe(text).then(go, go);
   setTimeout(go, 1500);   // phòng khi mạng chậm thì vẫn chuyển trang
+}
+secretBtn.addEventListener("click", function(){
+  goTo(SECRET_PAGE, "📍 Em ấy chọn: Đến nơi bí mật!");
+});
+funBtn.addEventListener("click", function(){
+  goTo(FUN_PAGE, "🎉 Em ấy chọn: Chỗ này cũng vui á!");
 });
 // ✏️ BẠN TỰ NHẬP Ở ĐÂY
 var LOGIN_USER = "Nhism";   // tên đăng nhập đúng, ví dụ "bemeo"
