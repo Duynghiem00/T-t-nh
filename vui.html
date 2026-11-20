@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chỗ này cũng vui á 💙</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap">
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:'Baloo 2',system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.photo{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%) scale(.85);max-width:82vw;max-height:60vh;
+  object-fit:contain;border-radius:18px;opacity:0;transition:opacity .9s,transform .9s;z-index:2;pointer-events:none;
+  box-shadow:0 0 0 3px rgba(191,219,254,.85),0 0 40px rgba(59,130,246,.8)}
+.photo.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.cover{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;text-align:center;color:#bfdbfe;background:#000;cursor:pointer;padding:24px;transition:opacity .8s}
+.cover.hide{opacity:0;pointer-events:none}
+.cover .h{font-size:72px;animation:b 1.2s ease-in-out infinite}
+@keyframes b{50%{transform:translateY(-8px) scale(1.06)}}
+.cover p{margin:0;font-size:20px;font-weight:800}
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;width:48px;height:48px;
+  border-radius:50%;border:0;font-size:22px;background:#1d4ed8;color:#fff;cursor:pointer;box-shadow:0 0 18px #3b82f6}
+.fab:focus-visible{outline:3px solid #bfdbfe;outline-offset:3px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<img id="photo" class="photo" alt="">
+<div class="cover" id="cover" role="button" tabindex="0">
+  <div class="h">💙</div>
+  <p>Chạm vào màn hình để bắt đầu</p>
+</div>
+<button class="fab" id="fab" aria-label="Bật hoặc tắt nhạc">🔇</button>
+
+<script>
+/* ✏️ BẠN SỬA PHẦN NÀY */
+var MUSIC_FILE   = "nhac-vui.mp3";   // tên file nhạc bạn upload cùng thư mục
+var MUSIC_START  = 5;                // nhạc bắt đầu phát từ giây thứ 5 của bài
+var MUSIC_VOLUME = 0.7;              // 0 đến 1
+var TEXT   = "Nhism Yêu Giang";      // chữ hiện ra khi trái tim nở
+var IMAGES = ["anh1.jpg", "anh2.jpg", "anh3.jpg"];   // ảnh hiện ra khi trái tim nở lần nữa
+var HEART_HOLD = 4500;               // thời gian giữ hình trái tim (mili giây)
+var TEXT_HOLD  = 4500;               // thời gian giữ chữ
+var IMAGE_HOLD = 5000;               // thời gian giữ mỗi ảnh (5000 = 5 giây)
+var TEXT_COLORS = ["#ffffff", "#ffffff", "#e0f2fe"];   // màu chữ: trắng cho nét nhất. Muốn hồng: ["#ff7eb6","#ffc2dc","#ffffff"], vàng: ["#fde047","#fef9c3","#ffffff"]
+var BG_HEARTS = 30;                  // số trái tim bay phía sau (nhiều quá điện thoại cũ có thể giật)
+var BG_HEART_COLORS = ["#3b82f6","#60a5fa","#93c5fd","#f472b6"];   // xanh và một chút hồng
+var BLUE = ["#3b82f6","#60a5fa","#93c5fd","#2563eb","#bfdbfe","#1d4ed8"];
+
+/* ---- Phần dưới bạn không cần sửa ---- */
+var cv = document.getElementById("c"), ctx = cv.getContext("2d");
+var W, H, dpr, cx, cy, sc, N;
+var heartSprites = [], bgHearts = [];
+var parts = [], floats = [], sparks = [], imgEls = [], stages = [];
+var pa = 1, stageIdx = 0, tStart = 0, gain = 1, baseA = 1, baseTarget = 1, timer = null, started = false, rt = null;
+
+function rnd(a,b){ return a + Math.random()*(b-a); }
+function makeSprite(color){                                     // vẽ sẵn 1 trái tim phát sáng để dùng lại
+  var c = document.createElement("canvas"); c.width = c.height = 64;
+  var o = c.getContext("2d");
+  o.fillStyle = color; o.shadowColor = color; o.shadowBlur = 8;
+  o.beginPath();
+  for (var i=0;i<=60;i++){
+    var p = heartXY(i/60*6.2832), x = 32 + p[0]*1.6, y = 32 + (-p[1]-2.5)*1.6;
+    if (i) o.lineTo(x,y); else o.moveTo(x,y);
+  }
+  o.closePath(); o.fill();
+  return c;
+}
+function rgb(h){ return [parseInt(h.substr(1,2),16), parseInt(h.substr(3,2),16), parseInt(h.substr(5,2),16)]; }
+var SH = BLUE.map(rgb);
+function shuffle(a){ for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function heartXY(t){ return [16*Math.pow(Math.sin(t),3), 13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t)]; }
+
+function mk(){
+  var c = SH[Math.floor(Math.random()*SH.length)];
+  return {x:Math.random()*W, y:Math.random()*H, vx:0, vy:0, ox:0, oy:0,
+          r:c[0], g:c[1], b:c[2], tr:c[0], tg:c[1], tb:c[2],
+          s:rnd(.8,2), ph:rnd(0,6.28), k:rnd(.04,.07)};
+}
+
+/* Lấy đúng N điểm từ danh sách điểm mục tiêu */
+function fit(pts, j){
+  j = (j === undefined) ? 1 : j;
+  if (!pts.length) return null;
+  var a = [];
+  for (var i=0;i<N;i++){ var p = pts[i % pts.length]; a.push({ox:p.ox+rnd(-j,j), oy:p.oy+rnd(-j,j), c:p.c}); }
+  return a;
+}
+
+function buildHeart(){
+  var a = [];
+  for (var i=0;i<N;i++){
+    var t = rnd(0,6.2832), r = Math.sqrt(Math.random());
+    if (Math.random() < .35) r = 1 - Math.random()*.08;      // thêm hạt dày ở viền
+    var p = heartXY(t);
+    a.push({ox:p[0]*r*sc + rnd(-1.5,1.5), oy:(-p[1]-2.5)*r*sc + rnd(-1.5,1.5)});
+  }
+  return a;
+}
+
+function buildText(){
+  var oc = document.createElement("canvas"); oc.width = W; oc.height = H;
+  var o = oc.getContext("2d"), fam = '800 100px "Baloo 2", system-ui, sans-serif';
+  var words = TEXT.split(" "), lines = [TEXT];
+  o.font = fam;
+  var fs = 100*W*.88 / o.measureText(TEXT).width;
+  if (fs < 48 && words.length > 1){                           // màn hình hẹp thì chia 2 dòng
+    var best = 1, bd = 1e9;
+    for (var i=1;i<words.length;i++){
+      var d = Math.abs(words.slice(0,i).join(" ").length - words.slice(i).join(" ").length);
+      if (d < bd){ bd = d; best = i; }
+    }
+    lines = [words.slice(0,best).join(" "), words.slice(best).join(" ")];
+    fs = 100*W*.88 / Math.max(o.measureText(lines[0]).width, o.measureText(lines[1]).width);
+  }
+  fs = Math.min(fs, H*.2);
+  o.font = fam.replace("100px", fs+"px");
+  o.fillStyle = "#fff"; o.textAlign = "center"; o.textBaseline = "middle";
+  var lh = fs*1.15, y0 = cy - (lines.length-1)*lh/2;
+  lines.forEach(function(l,i){ o.fillText(l, cx, y0 + i*lh); });
+  var d2 = o.getImageData(0,0,W,H).data, pts = [];
+  for (var y=0;y<H;y+=2) for (var x=0;x<W;x+=2) if (d2[(y*W+x)*4+3] > 128) pts.push({ox:x-cx, oy:y-cy, c:rgb(TEXT_COLORS[Math.floor(Math.random()*TEXT_COLORS.length)])});
+  return fit(shuffle(pts), .25);
+}
+
+/* Giai đoạn ảnh: hạt tản ra thành bụi sáng, ảnh thật hiện lên ở giữa */
+function buildDust(){
+  var a = [];
+  for (var i=0;i<N;i++) a.push({ox:rnd(-W/2,W/2), oy:rnd(-H*.45,H*.55)});
+  return a;
+}
+var photo = document.getElementById("photo"), photoT = null;
+function showPhoto(st){
+  clearTimeout(photoT);
+  photo.classList.remove("show");
+  if (st.img) photoT = setTimeout(function(){ photo.src = st.src; photo.classList.add("show"); }, 700);
+}
+
+function assign(burst){
+  var st = stages[stageIdx];
+  for (var i=0;i<N;i++){
+    var p = parts[i], t = st.t[i];
+    p.ox = t.ox; p.oy = t.oy;
+    var c = t.c || SH[Math.floor(Math.random()*SH.length)];
+    p.tr = c[0]; p.tg = c[1]; p.tb = c[2];
+    if (burst){                                                // nở ra: hạt bắn ra ngoài rồi mới bay về hình mới
+      var a = Math.atan2(p.y-cy, p.x-cx) + rnd(-.8,.8), v = rnd(4,14)*Math.min(W,H)/500;
+      p.vx = Math.cos(a)*v; p.vy = Math.sin(a)*v;
+    }
+  }
+  baseTarget = st.heart ? 1 : 0;
+  showPhoto(st);
+  if (burst){ tStart = performance.now(); gain = .1; }
+}
+
+function build(){
+  W = Math.floor(innerWidth); H = Math.floor(innerHeight); dpr = Math.min(window.devicePixelRatio||1, 2);
+  cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  cx = W/2; cy = H*.45; sc = Math.min(W*.8/34, H*.5/30);
+  N = W < 700 ? 2200 : 3600;
+  while (parts.length < N) parts.push(mk());
+  parts.length = N;
+  floats = [];
+  for (var i=0;i<140;i++) floats.push({x:Math.random()*W, y:Math.random()*H, v:rnd(.15,.6), s:rnd(.8,2), a:rnd(.15,.5)});
+  if (!heartSprites.length) heartSprites = BG_HEART_COLORS.map(makeSprite);
+  bgHearts = [];
+  for (var h=0;h<BG_HEARTS;h++) bgHearts.push({x:Math.random()*W, y:Math.random()*H, sz:rnd(10,38), v:rnd(.3,1.1),
+    a:rnd(.15,.45), sw:rnd(8,26), ph:rnd(0,6.28), sp:rnd(.5,1.4), spr:Math.floor(Math.random()*heartSprites.length)});
+  stages = [{t:buildHeart(), hold:HEART_HOLD, heart:true}];
+  var ts = buildText(); if (ts) stages.push({t:ts, hold:TEXT_HOLD, text:true});
+  var dust = buildDust();
+  imgEls.forEach(function(im){ if (im) stages.push({t:dust, hold:IMAGE_HOLD, img:true, src:im.src}); });
+  if (stageIdx >= stages.length) stageIdx = 0;
+  assign(false);
+}
+
+function next(){
+  clearTimeout(timer);
+  timer = setTimeout(function(){ stageIdx = (stageIdx+1) % stages.length; assign(true); next(); }, stages[stageIdx].hold);
+}
+
+function burstAt(x, y){                                        // chạm vào màn hình: trái tim nhỏ nở ra
+  for (var i=0;i<90;i++){
+    var p = heartXY(rnd(0,6.2832)), k = rnd(.1,.3)*Math.min(W,H)/400;
+    sparks.push({x:x, y:y, vx:p[0]*k, vy:-p[1]*k, l:1});
+  }
+}
+
+function frame(now){
+  requestAnimationFrame(frame);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.fillRect(0,0,W,H);   // để lại vệt sáng mờ
+  ctx.globalCompositeOperation = "lighter";
+  var tm = now/1000, st = stages[stageIdx];
+  gain = Math.min(1, Math.max(.1, (now - tStart - 250)/700));
+
+  baseA += (baseTarget - baseA)*.05;                           // bệ sáng dưới trái tim
+  if (baseA > .02){
+    var by = cy + 15.5*sc, rad = sc*11, g;
+    ctx.save(); ctx.translate(cx, by); ctx.scale(1, .28);
+    g = ctx.createRadialGradient(0,0,0,0,0,rad);
+    g.addColorStop(0,  "rgba(34,211,238,"+(.95*baseA)+")");
+    g.addColorStop(.6, "rgba(14,165,233,"+(.5*baseA)+")");
+    g.addColorStop(1,  "rgba(14,165,233,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0,0,rad,0,6.2832); ctx.fill(); ctx.restore();
+  }
+
+  for (var bi=0;bi<bgHearts.length;bi++){                      // trái tim bay lên ở phía sau
+    var b = bgHearts[bi]; b.y -= b.v;
+    if (b.y < -b.sz){ b.y = H + b.sz; b.x = Math.random()*W; }
+    ctx.globalAlpha = b.a;
+    ctx.drawImage(heartSprites[b.spr], b.x + Math.sin(tm*b.sp + b.ph)*b.sw - b.sz/2, b.y - b.sz/2, b.sz, b.sz);
+  }
+  ctx.globalAlpha = 1;
+
+  for (var i=0;i<floats.length;i++){                           // bụi sáng bay lơ lửng
+    var f = floats[i]; f.y -= f.v; if (f.y < -5){ f.y = H+5; f.x = Math.random()*W; }
+    ctx.fillStyle = "rgba(96,165,250,"+f.a+")"; ctx.fillRect(f.x, f.y, f.s, f.s);
+  }
+
+  var beat = st.heart ? 1 + .035*Math.sin(tm*3.2) : 1, sh = st.heart ? 1.2 : (st.text ? .2 : .8);
+  pa += ((st.img ? .35 : 1) - pa)*.06; ctx.globalAlpha = pa;
+  for (i=0;i<N;i++){
+    var p = parts[i];
+    var tx = cx + p.ox*beat + Math.sin(tm*2 + p.ph)*sh, ty = cy + p.oy*beat + Math.cos(tm*1.7 + p.ph)*sh;
+    p.vx = (p.vx + (tx-p.x)*p.k*gain)*.86; p.vy = (p.vy + (ty-p.y)*p.k*gain)*.86;
+    p.x += p.vx; p.y += p.vy;
+    p.r += (p.tr-p.r)*.07; p.g += (p.tg-p.g)*.07; p.b += (p.tb-p.b)*.07;
+    ctx.fillStyle = "rgb("+(p.r|0)+","+(p.g|0)+","+(p.b|0)+")";
+    var s = st.text ? 2.1 : p.s*(st.img ? 1.15 : 1);
+    ctx.fillRect(p.x - s/2, p.y - s/2, s, s);
+  }
+  ctx.globalAlpha = 1;
+
+  for (i=sparks.length-1;i>=0;i--){
+    var q = sparks[i]; q.x += q.vx; q.y += q.vy; q.vx *= .97; q.vy *= .97; q.l -= .018;
+    if (q.l <= 0){ sparks.splice(i,1); continue; }
+    ctx.fillStyle = "rgba(147,197,253,"+q.l+")"; ctx.fillRect(q.x, q.y, 2.2, 2.2);
+  }
+}
+
+/* Nhạc: phát từ giây MUSIC_START, hết bài thì quay lại giây đó */
+var bgm = new Audio(MUSIC_FILE); bgm.preload = "auto"; bgm.volume = MUSIC_VOLUME;
+var fab = document.getElementById("fab");
+function seekStart(){ try { bgm.currentTime = MUSIC_START; } catch(e){} }
+function startMusic(){
+  var p = bgm.play(); if (p && p.catch) p.catch(function(){});
+  if (bgm.readyState >= 1) seekStart(); else bgm.addEventListener("loadedmetadata", seekStart, {once:true});
+}
+bgm.addEventListener("ended", function(){ seekStart(); bgm.play(); });
+function icon(){ fab.textContent = bgm.paused ? "🔇" : "🔊"; }
+bgm.addEventListener("play", icon); bgm.addEventListener("pause", icon);
+fab.addEventListener("click", function(e){ e.stopPropagation(); if (bgm.paused) bgm.play(); else bgm.pause(); });
+
+/* Màn hình chờ: chạm để bắt đầu (cần thiết để trình duyệt cho phép phát nhạc) */
+var cover = document.getElementById("cover");
+function begin(){
+  if (started) return; started = true;
+  cover.classList.add("hide");
+  startMusic();
+  stageIdx = 0; assign(true); next();
+  setTimeout(function(){ cover.remove(); }, 900);
+}
+cover.addEventListener("click", begin);
+cover.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") begin(); });
+cv.addEventListener("pointerdown", function(e){ if (started) burstAt(e.clientX, e.clientY); });
+
+IMAGES.forEach(function(src, i){
+  var im = new Image();
+  im.onload = function(){ imgEls[i] = im; if (parts.length) build(); };
+  im.src = src;
+});
+window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(build, 200); });
+
+function go(){ build(); requestAnimationFrame(frame); }
+if (document.fonts && document.fonts.load) document.fonts.load('800 100px "Baloo 2"', TEXT).then(go, go); else go();
+</script>
+</body>
+</html>
