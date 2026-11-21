@@ -21,11 +21,16 @@ canvas{position:fixed;top:0;left:0;z-index:1}
 #playBtn:hover{transform:scale(1.05);box-shadow:0 0 15px rgba(0,234,255,1),0 0 35px rgba(0,174,255,.7)}
 #playBtn:active{transform:scale(.95)}
 @media (max-width:600px){#playBtn{bottom:18px;right:15px;padding:10px 17px;font-size:13px;border-radius:25px}}
+.bg{position:absolute;inset:-24px;z-index:0;background-position:center;background-size:cover;background-repeat:no-repeat;pointer-events:none}
+.back{position:fixed;left:14px;top:calc(14px + env(safe-area-inset-top,0px));z-index:200;padding:9px 18px;border:2px solid #00eaff;border-radius:25px;
+  background:linear-gradient(135deg,rgba(0,234,255,.55),rgba(0,140,255,.55));color:#fff;font:bold 15px sans-serif;text-decoration:none;
+  box-shadow:0 0 10px rgba(0,234,255,.8)}
+.back:focus-visible{outline:3px solid #fff;outline-offset:3px}
 </style>
 </head>
 <body>
-<div id="container"></div>
-
+<div id="container"><div class="bg" id="fondo"></div></div>
+<a href="index.html#chon" class="back">‹ Quay lại</a>
 <div id="modalCarta">
   <div id="carta"><h2 id="cartaTitulo"></h2><p id="cartaTexto"></p></div>
   <button id="cerrarModal">Cerrar</button>
@@ -40,12 +45,21 @@ const MUSICA_URL = "";   // pega aquí el enlace de tu canción (.mp3). Déjalo 
 const CARTA_TITULO = "Para ti 💙";
 const CARTA_TEXTO = "Eres mi todo.\nCada flor de esta galaxia es un motivo\npor el que te quiero.\n\nTe amo.";
 const FRASES = ["Te quiero 💙","Eres mi todo 💙","Me encantas","Amor de mi vida","Siempre juntos","Te amo","Mi universo","Contigo todo"];
+const FONDO_URL = "nen.jpg";   // ảnh nền (upload cùng thư mục). Để "" nếu không muốn ảnh nền
+const FONDO_OPACIDAD = 0.6;    // 0.6 = hiện 60%
+const FONDO_BLUR = 3;          // độ nhòe (px), 0 = không nhòe
 /* ================================ */
 
 const R = (a,b)=>a+Math.random()*(b-a);
 const G = ()=>(Math.random()+Math.random()+Math.random()-1.5)/1.5;
 
 const container = document.getElementById('container');
+(function(){
+  const f = document.getElementById('fondo');
+  if (FONDO_URL) f.style.backgroundImage = 'url("' + FONDO_URL + '")';
+  f.style.opacity = FONDO_OPACIDAD;
+  f.style.filter = 'blur(' + FONDO_BLUR + 'px)';
+})();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .1, 300);
 let camDist = innerWidth < 600 ? 17 : 13, camPitch = .38, yaw = 0;
