@@ -112,6 +112,19 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .login-label{display:block;font-weight:800;font-size:16px;margin:0 0 6px 6px}
 .shake{animation:shake .4s}
 @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.gifts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
+.gift{position:relative;aspect-ratio:3/4;padding:0;border:0;border-radius:18px;overflow:hidden;background:var(--no);
+  cursor:pointer;box-shadow:0 6px 16px rgba(255,92,138,.35);transition:transform .2s}
+.gift:not(:disabled):hover{transform:translateY(-4px) scale(1.03)}
+.gift:disabled{cursor:not-allowed}
+.gift:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.gift img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:filter .6s}
+.gift.locked img{filter:blur(7px) brightness(.85)}
+.gift .lid{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;
+  background:linear-gradient(135deg,rgba(255,92,138,.55),rgba(255,160,190,.55));transition:opacity .6s,transform .6s}
+.gift:not(.locked) .lid{opacity:0;transform:translateY(-30%) scale(1.2);pointer-events:none}
+.gift .gl{position:absolute;left:0;right:0;bottom:0;padding:18px 6px 8px;font-weight:800;font-size:13px;line-height:1.2;
+  color:#fff;background:linear-gradient(transparent,rgba(122,35,71,.85))}
 @media (prefers-reduced-motion:reduce){.bounce{animation:none}.heart{animation-duration:.01s!important}}.disc{animation:none}
 </style>
 </head>
@@ -189,8 +202,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <p class="sub" style="min-height:0;margin-bottom:16px">Nhism Rose</p>
     <button id="playBtn" class="play" aria-label="Phát nhạc">▶</button>
     <p class="sub" style="margin:16px 0 0">Anh mong mình sẽ có thật nhiều kỷ niệm đẹp nhé 💕</p>
-    <button id="secretBtn" class="go" disabled>🔒 Đến nơi bí mật</button>
-    <button id="funBtn" class="go" style="margin-top:10px" disabled>🔒 Chỗ này cũng vui á</button>
+    <div class="gifts" id="gifts"></div>
     <p id="secretHint" class="sub" style="margin:8px 0 0;min-height:0">Em nghe nhạc 1 chút nhé 💕🎧</p>
     <audio id="song" src="nhac.mp3" loop preload="auto"></audio>
   </section>
@@ -457,44 +469,54 @@ song.addEventListener("pause", function(){
 playBtn.addEventListener("click", function(){
   if (song.paused) { song.play(); } else { song.pause(); }
 });
-var UNLOCK_SECONDS = 5;            // số giây phải nghe, 120 = 2 phút
-var SECRET_PAGE = "bi-mat.html";     // trang của nút "Đến nơi bí mật"
-var FUN_PAGE    = "vui.html";        // trang của nút "Chỗ này cũng vui á"
+var UNLOCK_SECONDS = 5;   // số giây phải nghe, 120 = 2 phút
+
+// ✏️ Ảnh, tên, trang đến và tin báo Telegram của từng hộp quà
+var BOXES = [
+  {img:"qua1.jpg", label:"Đến nơi bí mật",     page:"bi-mat.html",  tele:"📍 Em ấy chọn hộp quà 1: Đến nơi bí mật!"},
+  {img:"qua2.jpg", label:"Chỗ này cũng vui á", page:"vui.html",     tele:"🎉 Em ấy chọn hộp quà 2: Chỗ này cũng vui á!"},
+  {img:"qua3.jpg", label:"Hộp quà bất ngờ",    page:"galaxia.html", tele:"🌌 Em ấy chọn hộp quà 3!"}
+];
 
 var listened = 0;
-var secretBtn = $("secretBtn"), funBtn = $("funBtn"), secretHint = $("secretHint");
+var secretHint = $("secretHint"), giftBox = $("gifts"), giftEls = [];
 
+BOXES.forEach(function(b){
+  var el = document.createElement("button");
+  el.type = "button"; el.className = "gift locked"; el.disabled = true;
+  var img = document.createElement("img"); img.alt = ""; img.src = b.img;
+  img.onerror = function(){ img.remove(); };            // thiếu ảnh thì hộp vẫn hiện nền hồng
+  var lid = document.createElement("span"); lid.className = "lid"; lid.textContent = "🎁";
+  var lab = document.createElement("span"); lab.className = "gl"; lab.textContent = b.label;
+  el.appendChild(img); el.appendChild(lid); el.appendChild(lab);
+  el.addEventListener("click", function(){ goTo(b.page, b.tele); });
+  giftBox.appendChild(el); giftEls.push(el);
+});
+
+function unlockGifts(){
+  giftEls.forEach(function(el){ el.disabled = false; el.classList.remove("locked"); });
+}
 function fmt(s){ return Math.floor(s/60) + ":" + pad(s%60); }
 
 setInterval(function(){
   if (song.paused || listened >= UNLOCK_SECONDS) return;   // chỉ đếm khi nhạc đang phát
   listened++;
   if (listened >= UNLOCK_SECONDS){
-    secretBtn.disabled = false;
-    funBtn.disabled = false;
-    secretBtn.textContent = "🔓 Đến nơi bí mật";
-    funBtn.textContent = "🔓 Chỗ này cũng vui á";
-    secretHint.textContent = "Mở khóa rồi nè, em chọn một nơi nhé 💖";
+    unlockGifts();
+    secretHint.textContent = "Mở khóa rồi nè, em chọn một hộp quà nhé 💖";
   } else {
     secretHint.textContent = "Nghe thêm " + fmt(UNLOCK_SECONDS - listened) + " nữa để mở khóa 🎧";
   }
 }, 1000);
 
 function goTo(page, text){
-  try { sessionStorage.setItem("unlocked","1"); } catch(e){}   // nhớ là bạn ấy đã mở khóa
-  secretBtn.disabled = true;
-  funBtn.disabled = true;
+  try { sessionStorage.setItem("unlocked","1"); } catch(e){}
+  giftEls.forEach(function(el){ el.disabled = true; });
   var gone = false;
   function go(){ if (!gone){ gone = true; window.location.href = page; } }
   notifyMe(text).then(go, go);
   setTimeout(go, 1500);   // phòng khi mạng chậm thì vẫn chuyển trang
 }
-secretBtn.addEventListener("click", function(){
-  goTo(SECRET_PAGE, "📍 Em ấy chọn: Đến nơi bí mật!");
-});
-funBtn.addEventListener("click", function(){
-  goTo(FUN_PAGE, "🎉 Em ấy chọn: Chỗ này cũng vui á!");
-});
 // ✏️ BẠN TỰ NHẬP Ở ĐÂY
 var LOGIN_USER = "Nhism";   // tên đăng nhập đúng, ví dụ "bemeo"
 var LOGIN_PASS = "1212";   // mật khẩu đúng, ví dụ "14022025"
@@ -543,7 +565,7 @@ function rain(n){
     (function(el){setTimeout(function(){el.remove()}, 8000)})(h);
   }
 }
-// Quay lại từ trang bí mật hoặc trang vui: mở thẳng phần chọn 2 nút
+// Quay lại từ các trang con: mở thẳng phần chọn hộp quà
 var unlockedBefore = false;
 try { unlockedBefore = !!sessionStorage.getItem("unlocked"); } catch(e){}
 if (location.hash === "#chon" && unlockedBefore){
@@ -552,14 +574,11 @@ if (location.hash === "#chon" && unlockedBefore){
   $("done").classList.add("hidden");
   $("music").classList.remove("hidden");
   listened = UNLOCK_SECONDS;
-  secretBtn.disabled = false; funBtn.disabled = false;
-  secretBtn.textContent = "🔓 Đến nơi bí mật";
-  funBtn.textContent = "🔓 Chỗ này cũng vui á";
-  secretHint.textContent = "Em chọn một nơi nhé 💖";
+  unlockGifts();
+  secretHint.textContent = "Em chọn một hộp quà nhé 💖";
 }
-// Nếu trình duyệt giữ lại trang cũ khi bấm lùi thì mở lại hai nút
 window.addEventListener("pageshow", function(e){
-  if (e.persisted){ secretBtn.disabled = false; funBtn.disabled = false; }
+  if (e.persisted && listened >= UNLOCK_SECONDS) unlockGifts();
 });
 </script>
 </body>
